@@ -93,16 +93,15 @@ Create a new file named `__.nu` in the project directory with the following cont
 
 ```nu
 export def git-hooks [x args] {
-    if  $x == 'pre-push' {
-        if .args[1] == 'github.com/nu_scripts.git' {
+    if $x == 'pre-push' {
+        if $args.1 == 'git@git:nu_scripts.git' {
             rsync -avP --delete nu_scripts/ xxx
         }
     }
 }
-
+```
 The rsync command will be executed when you `git push`.
 
-```
 ## changelog
 
 #### 2023-05-18
