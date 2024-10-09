@@ -83,6 +83,26 @@ Git remote
 Git bisect
 
 ## hooks
+The `git-install-hooks` command installs hooks in the current project.
+If no name is provided, it installs all hooks from `$env.GIT_HOOKS`.
+
+- `--mod` specifies the module name, defaulting to `__`
+- `--fun` specifies the entry function name, defaulting to `git-hooks`
+
+Create a new file named `__.nu` in the project directory with the following content:
+
+```nu
+export def git-hooks [x args] {
+    if  $x == 'pre-push' {
+        if .args[1] == 'github.com/nu_scripts.git' {
+            rsync -avP --delete nu_scripts/ xxx
+        }
+    }
+}
+
+The rsync command will be executed when you `git push`.
+
+```
 ## changelog
 
 #### 2023-05-18
