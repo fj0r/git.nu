@@ -1,3 +1,4 @@
+## Core
 Consider putting related commands together, such as `push` and `pull`,
 to decide how to execute based on the current environment or specified parameters.
 
@@ -81,6 +82,7 @@ Git remote
 ### gbs
 Git bisect
 
+## hooks
 ## changelog
 
 #### 2023-05-18
