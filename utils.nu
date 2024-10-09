@@ -20,3 +20,10 @@ export def git-last-commit [] {
         message: $d.1
     }
 }
+
+export def git-cdup [] {
+    let r = git rev-parse --show-cdup | complete
+    if $r.exit_code == 0 {
+        $r.stdout | str trim
+    }
+}
