@@ -27,3 +27,9 @@ export def git-cdup [] {
         $r.stdout | str trim
     }
 }
+
+export def git-repo-path [] {
+    let c = git-cdup
+    if ($c | describe) == nothing { return }
+    [$env.PWD (git-cdup)] | path join | path expand
+}
