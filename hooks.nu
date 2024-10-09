@@ -38,7 +38,11 @@ def cmpl-hooks [] {
     $env.GIT_HOOKS | columns
 }
 
-export def git-install-hooks [...hooks:string@cmpl-hooks --mod(-m)="__"] {
+export def git-install-hooks [
+    ...hooks:string@cmpl-hooks
+    --mod(-m)="__"
+    --fun(-f)="git-hooks"
+] {
     let c = git-cdup
     if ($c | describe) == nothing { return }
     let hp = [$c .git hooks] | path join
@@ -49,14 +53,14 @@ export def git-install-hooks [...hooks:string@cmpl-hooks --mod(-m)="__"] {
         let p = [$hp $h.k] | path join
         [
             "#!/bin/env nu"
-            $"use ../../($mod).nu"
-            "cd ($env.CURRENT_FILE | path split | range 0..<-3 | path join)"
-            "pwd"
+           $"use ../../($mod).nu"
+            ""
             "export def main [...argv:string] {"
-            $"    if (scope commands | where name == '($mod) git-hooks' | is-empty) {"
-            "        print $'(ansi grey)The `git-hooks` function is undefined.(ansi reset)'"
+            "    cd ($env.CURRENT_FILE | path split | range 0..<-1 | path join)"
+           $"    if \(scope commands | where name == '($mod) ($fun)' | is-empty\) {"
+           $"        print $'\(ansi grey\)The `($fun)` function is undefined.\(ansi reset\)'"
             "    } else {"
-            $"        ($mod) git-hooks '($h.k)' $argv"
+           $"        ($mod) ($fun) '($h.k)' $argv"
             "    }"
             "}"
         ]
