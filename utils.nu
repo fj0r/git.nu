@@ -41,12 +41,10 @@ export def git-sync [src dest --no-file --push --init: string] {
         rsync -a --delete --exclude='.git' $'($src)/' $dest
     }
     cd $dest
-    if ($init | is-not-empty) {
-        if not (git-is-repo) {
-            git init $init
-            if $push {
-                git push
-            }
+    if ($init | is-not-empty) and not (git-is-repo) {
+        git init $init
+        if $push {
+            git push
         }
     }
     if (git-changes | is-not-empty) {
