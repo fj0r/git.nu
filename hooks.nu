@@ -74,7 +74,7 @@ export def git-install-hooks [
                 cd $wd
                 let cm = git log --reverse -n 1 --pretty=%h»¦«%s | split row '»¦«'
                 ($mod) ($fun) '($h.k)' {
-                    workdir: \(pwd\)
+                    workdir: $env.PWD
                     hash: $cm.0
                     message: $cm.1
                     remote: $argv.0?
