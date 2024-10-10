@@ -31,7 +31,9 @@ export def git-list-hooks [] {
     let c = git-cdup
     if ($c | describe) == nothing { return }
     let hp = [$c .git hooks] | path join
-    ls $hp | get name | path parse | get stem
+    ls $hp | get name | path parse
+    | filter {|x| ($x.extension | is-empty) and ($x.stem in $env.GIT_HOOKS) }
+    | get stem
 }
 
 def cmpl-hooks [] {
