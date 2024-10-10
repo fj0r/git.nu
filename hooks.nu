@@ -38,6 +38,14 @@ def cmpl-hooks [] {
     $env.GIT_HOOKS | columns
 }
 
+def outdent [] {
+    let txt = $in | lines | range 1..
+    let indent = $txt.0 | parse --regex '^(?P<indent>\s*)' | get indent.0 | str length
+    $txt
+    | each {|s| $s | str substring $indent.. }
+    | str join (char newline)
+}
+
 export def git-install-hooks [
     ...hooks:string@cmpl-hooks
     --mod(-m)="__"
@@ -51,21 +59,28 @@ export def git-install-hooks [
     let hs = if ($hooks | is-empty) { $hs } else { $hs | where k in $hooks }
     for h in $hs {
         let p = [$hp $h.k] | path join
-        [
-            "#!/bin/env nu"
-           $"use ../../($mod).nu"
-            ""
-            "export def main [...argv:string] {"
-            "    let wd = $env.CURRENT_FILE | path split | split list '.git' | range ..<-1 | flatten | path join"
-            "    cd $wd"
-           $"    if \(scope commands | where name == '($mod) ($fun)' | is-empty\) {"
-           $"        print $'\(ansi grey\)The `($fun)` function is undefined.\(ansi reset\)'"
-            "    } else {"
-           $"        ($mod) ($fun) '($h.k)' $argv"
-            "    }"
-            "}"
-        ]
-        | str join (char newline)
+        $"
+        #!/bin/env nu
+        use ../../($mod).nu
+
+        export def main [...argv:string] {
+            if \(scope commands | where name == '($mod) ($fun)' | is-empty\) {
+                print $'\(ansi grey\)The `($fun)` function is undefined.\(ansi reset\)'
+            } else {
+                let wd = $env.CURRENT_FILE
+                | path split | split list '.git' | range ..<-1 | flatten | path join
+                cd $wd
+                let cm = git log --reverse -n 1 --pretty=%h»¦«%s | split row '»¦«'
+                ($mod) ($fun) '($h.k)' {
+                    hash: $cm.0
+                    message: $cm.1
+                    remote: $argv.0?
+                    repo: $argv.1?
+                }
+            }
+        }
+        "
+        | outdent
         | save -f $p
         chmod +x $p
     }
