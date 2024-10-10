@@ -34,10 +34,12 @@ export def git-repo-path [] {
     [$env.PWD (git-cdup)] | path join | path expand
 }
 
-export def git-sync [src dest --push --init: string] {
+export def git-sync [src dest --no-file --push --init: string] {
     cd $src
     let l = git-last-commit
-    rsync -a --delete --exclude='.git' $'($src)/' $dest
+    if not $no_file {
+        rsync -a --delete --exclude='.git' $'($src)/' $dest
+    }
     cd $dest
     if ($init | is-not-empty) {
         if not (git-is-repo) {
