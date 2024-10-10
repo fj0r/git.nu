@@ -33,3 +33,25 @@ export def git-repo-path [] {
     if ($c | describe) == nothing { return }
     [$env.PWD (git-cdup)] | path join | path expand
 }
+
+export def git-sync [src dest --push --init: string] {
+    cd $src
+    let l = git-last-commit
+    rsync -a --delete --exclude='.git' $'($src)/' $dest
+    cd $dest
+    if ($init | is-not-empty) {
+        if not (git-is-repo) {
+            git init $init
+            if $push {
+                git push
+            }
+        }
+    }
+    if (git-changes | is-not-empty) {
+        git add .
+        git commit -m $l.message
+        if $push {
+            git push
+        }
+    }
+}
