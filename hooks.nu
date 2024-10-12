@@ -93,7 +93,7 @@ export def git-install-hooks [
 
                 cd $wd
 
-                (if $direnv { 'use direnv; direnv' })
+                (if $direnv { $'use direnv; direnv ($mod)' })
 
                 let cm = git log --reverse -n 1 --pretty=%h»¦«%s | split row '»¦«'
 
