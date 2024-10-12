@@ -66,6 +66,7 @@ export def git-install-hooks [
     ...hooks:string@cmpl-hooks
     --mod(-m)="__"
     --fun(-f)="git-hooks"
+    --direnv
 ] {
     let c = git-cdup
     if ($c | describe) == nothing { return }
@@ -78,15 +79,25 @@ export def git-install-hooks [
         $"
         #!/bin/env nu
         use ../../($mod).nu
+        (if $direnv { 'use direnv' })
 
         export def main [...argv:string] {
             if \(scope commands | where name == '($mod) ($fun)' | is-empty\) {
                 print $'\(ansi grey\)The `($fun)` function is undefined.\(ansi reset\)'
             } else {
                 let wd = $env.CURRENT_FILE
-                | path split | split list '.git' | range ..<-1 | flatten | path join
+                | path split
+                | split list '.git'
+                | range ..<-1
+                | flatten
+                | path join
+
                 cd $wd
+
+                (if $direnv { 'direnv' })
+
                 let cm = git log --reverse -n 1 --pretty=%h»¦«%s | split row '»¦«'
+
                 ($mod) ($fun) '($h.k)' {
                     workdir: $env.PWD
                     hash: $cm.0

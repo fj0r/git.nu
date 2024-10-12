@@ -42,9 +42,12 @@ export def git-sync [src dest --no-file --push --init: string] {
     }
     cd $dest
     if ($init | is-not-empty) and not (git-is-repo) {
-        git init $init
+        git init .
+        git remote add origin $init
+        git add .
+        git commit -m 'init'
         if $push {
-            git push
+            git push --set-upstream origin main
         }
     }
     if (git-changes | is-not-empty) {
