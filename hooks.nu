@@ -79,7 +79,6 @@ export def git-install-hooks [
         $"
         #!/bin/env nu
         use ../../($mod).nu
-        (if $direnv { 'use direnv' })
 
         export def main [...argv:string] {
             if \(scope commands | where name == '($mod) ($fun)' | is-empty\) {
@@ -94,7 +93,7 @@ export def git-install-hooks [
 
                 cd $wd
 
-                (if $direnv { 'direnv' })
+                (if $direnv { 'use direnv; direnv' })
 
                 let cm = git log --reverse -n 1 --pretty=%h»¦«%s | split row '»¦«'
 
