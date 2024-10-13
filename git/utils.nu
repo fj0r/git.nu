@@ -38,7 +38,7 @@ export def git-sync [src dest --no-file --push --init: string] {
     cd $src
     let l = git-last-commit
     if not $no_file {
-        rsync -a --delete --exclude='.git' $'($src)/' $dest
+        rsync -a --delete --exclude='.git' $'($src | path expand)/' ($dest | path expand)
     }
     cd $dest
     if ($init | is-not-empty) and not (git-is-repo) {
