@@ -82,6 +82,8 @@ Git remote
 ### gbs
 Git bisect
 
+### git-sync
+
 ## hooks
 The `git-install-hooks` command installs hooks in the current project.
 If no name is provided, it installs all hooks from `$env.GIT_HOOKS`.
