@@ -34,11 +34,23 @@ export def git-repo-path [] {
     [$env.PWD (git-cdup)] | path join | path expand
 }
 
-export def git-sync [src dest --no-file --push --init: string] {
+export def git-sync [
+    src dest
+    --no-file
+    --push
+    --init: string
+    --post-sync: closure
+    --trans-name: closure
+] {
     cd $src
     let l = git-last-commit
     if not $no_file {
-        rsync -a --delete --exclude='.git' $'($src | path expand)/' ($dest | path expand)
+        let src = $src | path expand
+        let dest = $dest | path expand
+        rsync -a --delete --exclude='.git' $'($src)/' $dest
+        if ($post_sync | is-not-empty) {
+            do $post_sync $src $dest
+        }
     }
     cd $dest
     if ($init | is-not-empty) and not (git-is-repo) {
@@ -52,7 +64,8 @@ export def git-sync [src dest --no-file --push --init: string] {
     }
     if (git-changes | is-not-empty) {
         git add .
-        git commit -m $l.message
+        let msg = if ($trans_name | is-empty) { $l.message } else { do $trans_name $l.message }
+        git commit -m $msg
         if $push {
             git push
         }
