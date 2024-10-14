@@ -496,3 +496,9 @@ export def git-garbage-collect [] {
     git gc --aggressive --prune=now
 }
 
+export def git-shallow [num:int=10] {
+    git rev-parse $"HEAD~($num)" | save -f .git/shallow
+    git fsck --unreachable
+    git gc --prune=now
+}
+
