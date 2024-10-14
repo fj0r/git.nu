@@ -502,7 +502,8 @@ export def git-truncate-history [
 ] {
     let h = git log --pretty=%H --reverse -n $retain | lines | first
     git checkout --orphan temp $h
+    git add .
     git commit -m $message
-    git rebase --onto temp $h master
+    git rebase --onto temp $h main
 }
 
