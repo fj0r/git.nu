@@ -496,9 +496,13 @@ export def git-garbage-collect [] {
     git gc --aggressive --prune=now
 }
 
-export def git-shallow [num:int=10] {
-    git rev-parse $"HEAD~($num)" | save -f .git/shallow
-    git fsck --unreachable
-    git gc --prune=now
+export def git-truncate-history [
+    retain:int=10
+    --message:string="Truncate history"
+] {
+    let h = git log --pretty=%H --reverse -n $retain | lines | first
+    git checkout --orphan temp $h
+    git commit -m $message
+    git rebase --onto temp $h master
 }
 
