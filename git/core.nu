@@ -421,10 +421,12 @@ export def git-copy-file [
 export def git-reset [
     commit?:      string@cmpl-git-log
     --hard (-h)
+    --soft (-s)
     --clean (-c)
 ] {
     mut args = []
     if $hard { $args ++= [--hard] }
+    if $soft { $args ++= [--soft] }
     if ($commit | is-not-empty) { $args ++= $commit }
     git reset ...$args
     if $clean {
@@ -508,3 +510,10 @@ export def git-truncate-history [
     git rebase --onto temp $h $s.branch
 }
 
+export def git-squash-last [
+    num:int
+] {
+    let l = git log --pretty=%s -n $num
+    git reset --soft $"HEAD~($num)"
+    git commit --edit -m $l
+}

@@ -40,20 +40,25 @@ export def git-sync [
     --push
     --init: string
     --post-sync: closure
+    --init-post-sync: closure
     --trans-name: closure
 ] {
+    let src = $src | path expand
     cd $src
     let l = git-last-commit
     let msg = if ($trans_name | is-empty) { $l.message } else { do $trans_name $l.message }
+    let dest = $dest | path expand
+    if not ($dest | path exists) { mkdir $dest }
+    cd $dest
     if not $no_file {
-        let src = $src | path expand
-        let dest = $dest | path expand
         rsync -a --delete --exclude='.git' $'($src)/' $dest
-        if ($post_sync | is-not-empty) {
-            do $post_sync $src $dest
+        if ($post_sync | is-not-empty) and (git-is-repo) {
+            do $post_sync $src $dest $l
+        }
+        if ($init_post_sync | is-not-empty) {
+            do $init_post_sync $src $dest $l
         }
     }
-    cd $dest
     if ($init | is-not-empty) and not (git-is-repo) {
         git init .
         git remote add origin $init
