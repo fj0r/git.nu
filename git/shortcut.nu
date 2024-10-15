@@ -17,6 +17,7 @@ export alias grm = git-remote
 export alias gbs = git-bisect
 export alias ggc = git-garbage-collect
 export alias ghm = git-histogram-merger
+export alias gha = git-histogram-activities
 
 
 export alias gcl = git config --list

@@ -484,15 +484,6 @@ export def git-bisect [
     }
 }
 
-export def git-histogram-merger [] {
-    git log --pretty=%h»¦«%aN»¦«%s»¦«%aD
-    | lines
-    | split column "»¦«" sha1 committer desc merged_at
-    | histogram committer merger
-    | sort-by merger
-    | reverse
-}
-
 export def git-garbage-collect [] {
     git reflog expire --all --expire=now
     git gc --aggressive --prune=now
@@ -504,7 +495,7 @@ export def git-truncate-history [
 ] {
     let h = git log --pretty=%H --reverse -n $retain | lines | first
     let s = _git_status
-    git checkout --orphan temp $h
+    git checkout -f --orphan temp $h
     git add .
     git commit -m $message
     git rebase --onto temp $h $s.branch
