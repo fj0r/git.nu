@@ -44,6 +44,7 @@ export def git-sync [
 ] {
     cd $src
     let l = git-last-commit
+    let msg = if ($trans_name | is-empty) { $l.message } else { do $trans_name $l.message }
     if not $no_file {
         let src = $src | path expand
         let dest = $dest | path expand
@@ -57,14 +58,13 @@ export def git-sync [
         git init .
         git remote add origin $init
         git add .
-        git commit -m 'init'
+        git commit -m $msg
         if $push {
             git push --set-upstream origin main
         }
     }
     if (git-changes | is-not-empty) {
         git add .
-        let msg = if ($trans_name | is-empty) { $l.message } else { do $trans_name $l.message }
         git commit -m $msg
         if $push {
             git push
