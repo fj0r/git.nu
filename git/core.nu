@@ -32,7 +32,7 @@ export def git-stash [
     } else if $all {
         git stash --all ...(if $include_untracked {[--include-untracked]} else {[]})
     } else {
-        let s = (_git_status)
+        let s = _git_status
         if ($s | sum_prefix 'wt_') > 0 {
             git stash
         } else {
@@ -230,7 +230,7 @@ export def git-pull-push [
             git checkout $prev
         }
 
-        let s = (_git_status)
+        let s = _git_status
         if $s.ahead > 0 {
             tips 'remote is behind, push'
             git push
@@ -324,7 +324,7 @@ export def git-diff [
     if $cached { $args ++= [--cached] }
     if $staged { $args ++= [--staged] }
     if ($args | is-empty) {
-        let s = (_git_status)
+        let s = _git_status
         if ($s | sum_prefix 'wt_') > 0 {
             git diff ...$file
         } else if ($s | sum_prefix 'idx_') > 0 {
@@ -501,9 +501,10 @@ export def git-truncate-history [
     --message:string="Truncate history"
 ] {
     let h = git log --pretty=%H --reverse -n $retain | lines | first
+    let s = _git_status
     git checkout --orphan temp $h
     git add .
     git commit -m $message
-    git rebase --onto temp $h main
+    git rebase --onto temp $h $s.branch
 }
 
