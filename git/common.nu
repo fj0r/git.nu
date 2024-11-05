@@ -13,7 +13,3 @@ export def agree [
 export def tips [msg] {
     print -e $"(ansi light_gray)($msg)(ansi reset)"
 }
-
-export def --wrapped with-flag [...flag] {
-    if ($in | is-empty) { [] } else { [...$flag $in] }
-}

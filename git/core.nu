@@ -254,7 +254,7 @@ export def git-add [
 ] {
     mut args = []
     if $restore {
-        $args ++= ($source | with-flag --source)
+        if ($source | is-not-empty) { $args ++= [--source $source] }
         if $staged { $args ++= [--staged]}
         $args ++= if ($file | is-empty) { [.] } else { $file }
         git restore ...$args
@@ -294,15 +294,32 @@ export def git-delete [
 }
 
 
+export def cmpl-commit-type [] {
+    [feat fix docs style refactor perf test chore]
+}
+
 # git commit
 export def git-commit [
-    message?:     string
+    ...message:     string
+    --type (-t): string@cmpl-commit-type
     --all (-A)
     --amend (-a)
     --keep (-k)
 ] {
     mut args = []
-    $args ++= ($message | with-flag -m)
+    if ($message | is-not-empty) {
+        let message = $message | str join ' '
+        let message = if ($type | is-empty) {
+            $message
+        } else {
+            $"($type): ($message)"
+        }
+        $args ++= [-m $message]
+    } else {
+        if ($type | is-not-empty) {
+            $args ++= [-m $"($type): " -e]
+        }
+    }
     if $all { $args ++= [--all] }
     if $amend { $args ++= [--amend] }
     if $keep { $args ++= [--no-edit] }
