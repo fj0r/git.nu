@@ -295,7 +295,7 @@ export def git-delete [
 
 
 export def cmpl-commit-type [] {
-    [feat fix docs style refactor perf test chore]
+    $env.GIT_COMMIT_TYPE | columns
 }
 
 # git commit
@@ -312,12 +312,13 @@ export def git-commit [
         let message = if ($type | is-empty) {
             $message
         } else {
-            $"($type): ($message)"
+            $env.GIT_COMMIT_TYPE | get $type | str replace '{}' $message
         }
         $args ++= [-m $message]
     } else {
         if ($type | is-not-empty) {
-            $args ++= [-m $"($type): " -e]
+            let message = $env.GIT_COMMIT_TYPE | get $type | str replace '{}' ''
+            $args ++= [-m $message -e]
         }
     }
     if $all { $args ++= [--all] }

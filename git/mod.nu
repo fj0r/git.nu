@@ -3,3 +3,16 @@ export use utils.nu *
 export use core.nu *
 export use histogram.nu *
 
+export-env {
+    $env.GIT_COMMIT_TYPE = {
+        feat: 'feat: {}'
+        fix: 'fix: {}'
+        docs: 'docs: {}'
+        style: 'style: {}'
+        refactor: 'refactor: {}'
+        perf: 'perf: {}'
+        test: 'test: {}'
+        chore: 'chore: {}'
+    }
+}
+
