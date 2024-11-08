@@ -65,16 +65,13 @@ Git commit
 Git diff
 
 ### gm
-Git merge and rebase
+Git merge
 
-- `--rebase` git rebase
-- git merge
+### gr
+Git rebase
 
 ### gcp
 Git cherry-pick
-
-### gr
-Git reset
 
 ### grmt
 Git remote
@@ -84,29 +81,3 @@ Git bisect
 
 ### git-sync
 
-## hooks
-The `git-install-hooks` command installs hooks in the current project.
-If no name is provided, it installs all hooks from `$env.GIT_HOOKS`.
-
-- `--mod` specifies the module name, defaulting to `__`
-- `--fun` specifies the entry function name, defaulting to `git-hooks`
-
-Create a new file named `__.nu` in the project directory with the following content:
-
-```nu
-export def git-hooks [x args] {
-    if $x == 'pre-push' {
-        if $args.1 == 'git@git:nu_scripts.git' {
-            rsync -avP --delete nu_scripts/ xxx
-        }
-    }
-}
-```
-The rsync command will be executed when you `git push`.
-
-## changelog
-
-#### 2023-05-18
-- `gp -u` can omit branch
-- delete `grb`
-- improve the premise in the description
