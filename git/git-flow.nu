@@ -44,6 +44,18 @@ export def git-flow-merge [
     let cfg = git-flow-config
     git checkout $cfg.branches.dev
     git merge --no-ff $branch
-    git branch -d $branch
     git-pull-push
+    git branch -d $branch
+    git push origin --delete $branch
+}
+
+export def git-flow-resolve [
+    branch: string@cmpl-git-branches
+] {
+    let cfg = git-flow-config
+    git add .
+    git commit
+    git-pull-push
+    git branch -d $branch
+    git push origin --delete $branch
 }
