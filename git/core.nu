@@ -361,10 +361,12 @@ export def git-merge [
     --quit (-q)
     --squash (-s)
     --fast-farward (-f)
+    --no-ff
 ] {
     mut args = []
     if $squash { $args ++= [--squash] }
-    if $fast_farward { $args ++= [--ff] } else { $args ++= [--no-ff] }
+    if $fast_farward { $args ++= [--ff] }
+    if $no_ff { $args ++= [--no-ff] }
     if ($branch | is-empty) {
         git merge ...$args $"origin/(git_main_branch)"
     } else {
