@@ -26,4 +26,8 @@ export alias gswc = git switch -c
 export alias gts = git tag -s
 
 export alias gfn = git-flow-new-feature
-export alias gfm = git-flow-merge
+export alias gfm = git-flow-merge-feature
+export alias gfr = git-flow-resolve
+export alias gfR = git-flow-release
+export alias gfhn = git-flow-new-hotfix
+export alias gfhm = git-flow-merge-hotfix
