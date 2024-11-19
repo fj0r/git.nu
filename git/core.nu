@@ -170,7 +170,6 @@ export def git-pull-push [
     --override
     --submodule (-s)         # git submodule
     --init (-i)              # git init
-    --merge (-m)             # git pull (no)--rebase
     --autostash (-a)         # git pull --autostash
     --back-to-prev (-b)      # back to branch
 ] {
@@ -184,7 +183,7 @@ export def git-pull-push [
         git commit -v -a --no-edit --amend
         git push --force
     } else {
-        let m = if $merge { [] } else { [--rebase] }
+        let m = if $rebase { [--rebase] } else { [] }
         let a = if $autostash {[--autostash]} else {[]}
         let prev = (_git_status).branch
         let branch = if ($branch | is-empty) { $prev } else { $branch }
@@ -361,12 +360,10 @@ export def git-merge [
     --quit (-q)
     --squash (-s)
     --fast-farward (-f)
-    --no-ff
 ] {
     mut args = []
     if $squash { $args ++= [--squash] }
-    if $fast_farward { $args ++= [--ff] }
-    if $no_ff { $args ++= [--no-ff] }
+    if $fast_farward { $args ++= [--ff] } else { $args ++= [--no-ff] }
     if ($branch | is-empty) {
         git merge ...$args $"origin/(git_main_branch)"
     } else {
