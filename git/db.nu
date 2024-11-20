@@ -4,7 +4,7 @@ export def Q [...t --sep:string=''] {
 }
 
 export def sqlx [s] {
-    open $env.GIT_FLOW_DB | query db $s
+    open $env.GIT_FLOW_STATE | query db $s
 }
 
 export def --env init-db [env_name:string, file:string, hook: closure] {
