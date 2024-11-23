@@ -1,8 +1,8 @@
 export use stat.nu *
 export use utils.nu *
 export use core.nu *
-export use git-flow.nu *
 export use histogram.nu *
+export use git-flow.nu *
 
 export-env {
     $env.GIT_COMMIT_TYPE = {
@@ -15,5 +15,6 @@ export-env {
         test: 'test: {}'
         chore: 'chore: {}'
     }
+    export use git-flow.nu
 }
 

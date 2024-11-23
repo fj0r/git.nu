@@ -2,130 +2,133 @@ use utils.nu *
 use core.nu *
 use complete.nu *
 
-const default_config = {
-    branches: {
-        dev: dev
-        main: main
-        release: release-
-        hotfix: hotfix-
-    }
-}
-
-def config-file [] {
-    [(git-repo-path) .gitflow] | path join
-}
-
-export def git-flow-init [] {
-    $default_config
-    | to toml
-    | save -f (config-file)
-}
-
-export def git-flow-config [] {
-    let p = config-file
-    let $s = if ($p | path exists) {
-        open $p | from toml
-    } else {
-        {}
-    }
-    $default_config | merge $s
-}
-
-def ensure-branch [branch] {
-    if (_git_status).branch != $branch {
-        if ([y n] | input list $"The current branch is not `($branch)`, checkout?") == 'y' {
-            checkout $branch
-            return true
+export-env {
+    $env.GIT_FLOW = {
+        branches: {
+            dev: dev
+            main: main
+            release: release
+            hotfix: hotfix
+            feature: feature
         }
+        separator: '/'
     }
-    return false
 }
 
-export def git-flow-push [
-    branch: string@cmpl-git-branches
-] {
-    git-pull-push
-    git branch -d $branch
-    git push origin --delete $branch
-}
-
-export def git-flow-new-feature [
-    branch: string@cmpl-git-branches
-] {
-    let cfg = git-flow-config
-    $cfg | upsert current_feature $branch | save -f (config-file)
-    git checkout -b $branch $cfg.branches.dev
-}
-
-export def git-flow-merge-feature [
-] {
-    let cfg = git-flow-config
-    if ($cfg.current_feature? | is-empty) {
-        error make -u {msg: $"There are no features currently" }
+def git-flow-select [kind] {
+    git branch
+    | lines
+    | filter { $in | str starts-with '*' | not $in }
+    | each {|x| $"($x|str trim)"}
+    | filter {|x|
+        let branches = $env.GIT_FLOW.branches
+        let sep = $env.GIT_FLOW.separator
+        $x | str starts-with $"($branches | get $kind)($sep)"
     }
-    if not (ensure-branch $cfg.current_feature) { return }
-    git checkout $cfg.branches.dev
-    git merge --no-ff $cfg.current_feature
-    git-flow-push $cfg.current_feature
-    $cfg | upsert current_feature '' | save -f (config-file)
 }
 
-export def git-flow-resolve [
-    branch: string@cmpl-git-branches
+export def cmpl-git-features [] {
+    git-flow-select feature
+}
+
+export def git-flow-branches [kind] {
+    let branches = $env.GIT_FLOW.branches
+    let sep = $env.GIT_FLOW.separator
+    let curr = (_git_status).branch
+    mut obj = $curr
+    if not ($obj | str starts-with $"($branches | get $kind)($sep)") {
+        $obj = git-flow-select $kind | input list $"There are no ($kind) currently, pick?"
+    }
+    {
+        curr: $curr
+        $kind: $obj
+        dev: $branches.dev
+        main: $branches.main
+    }
+}
+
+export def git-flow-open-feature [
+    name: string
 ] {
-    let cfg = git-flow-config
-    if not (ensure-branch $cfg.branches.dev) { return }
+    let branches = $env.GIT_FLOW.branches
+    let sep = $env.GIT_FLOW.separator
+    git checkout -b $"($branches.feature)($sep)($name)" $branches.dev
+}
+
+export def git-flow-close-feature [
+    --pr
+] {
+    let b = git-flow-branches feature
+    git checkout $b.dev
+    git merge --no-ff $b.feature
+    if $pr {
+        git checkout $b.feature
+        git push -u origin $b.feature
+    } else {
+        git push -u origin $b.dev
+        git branch -d $b.feature
+    }
+    git checkout $b.dev
+}
+
+export def git-flow-resolve-feature [
+    --pr
+] {
+    let b = git-flow-branches feature
+    git checkout $b.feature
     git add .
     git commit
-    git-flow-push $branch
+    git-flow-close-feature
 }
 
 export def git-flow-release [
-    tag: number
+    tag: string
 ] {
-    let cfg = git-flow-config
-    let rb = $"($cfg.branches.release)($tag)"
-    git checkout -b $rb $cfg.branches.dev
+    let branches = $env.GIT_FLOW.branches
+    let sep = $env.GIT_FLOW.separator
+    let rb = $"($branches.release)($sep)($tag)"
+    git checkout -b $rb $branches.dev
     # ... bump
-    git commit -a -m "Bumped version number to ($tag)"
+    do -i { git commit -a -m $"Bumped version number to ($tag)" }
 
-    git checkout $cfg.branches.main
+    git checkout $branches.main
     git merge --no-ff $rb
     git tag -a $tag
+    git push -u origin $branches.main
 
-    git checkout $cfg.branches.dev
-    git merge --no-ff $rb
-
-    git branch -d $rb
+    do -i { git branch -d $rb }
+    git checkout $branches.dev
 }
 
 
-export def git-flow-new-hotfix [
-    tag: number
+export def git-flow-open-hotfix [
+    tag: string
 ] {
-    let cfg = git-flow-config
-    let rb = $"($cfg.branches.hotfix)($tag)"
-    git checkout -b $rb $cfg.branches.main
+    let branches = $env.GIT_FLOW.branches
+    let sep = $env.GIT_FLOW.separator
+    let rb = $"($branches.hotfix)($sep)($tag)"
+    git checkout -b $rb $branches.main
     # ... bump
-    git commit -a -m "Bumped version number to ($tag)"
+    git commit -a -m $"Bumped version number to ($tag)"
 }
 
 
-export def git-flow-merge-hotfix [
-    tag: number
+export def git-flow-close-hotfix [
     message: string
 ] {
-    let cfg = git-flow-config
-    let rb = $"($cfg.branches.hotfix)($tag)"
 
-    git commit -m $"Fixed: ($message)"
+    let b = git-flow-branches hotfix
+    git checkout $b.hotfix
 
-    git checkout -b $rb $cfg.branches.main
-    git merge --no-ff $rb
-    git tag -a $tag
+    #do -i { git commit -m $"Fixed: ($message)" }
 
-    git checkout $cfg.branches.dev
-    git merge --no-ff $rb
+    git checkout $b.main
+    git merge --no-ff $b.hotfix
+    let sep = $env.GIT_FLOW.separator
+    git tag -a ($b.hotfix | split row $sep | range 1.. | str join $sep)
 
-    git branch -d $rb
+    git checkout $b.dev
+    git merge --no-ff $b.hotfix
+
+    git branch -d $b.hotfix
 }
