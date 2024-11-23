@@ -74,11 +74,10 @@ export def git-flow-close-feature [
 export def git-flow-resolve-feature [
     --pr
 ] {
-    let b = git-flow-branches feature
-    git checkout $b.feature
+    git checkout $env.GIT_FLOW.branches.dev
     git add .
     git commit
-    git-flow-close-feature
+    git push
 }
 
 export def git-flow-release [
