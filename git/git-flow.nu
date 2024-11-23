@@ -120,7 +120,7 @@ export def git-flow-close-hotfix [
     let b = git-flow-branches hotfix
     git checkout $b.hotfix
 
-    #do -i { git commit -m $"Fixed: ($message)" }
+    do -i { git commit -m $"Fixed: ($message)" }
 
     git checkout $b.main
     git merge --no-ff $b.hotfix
