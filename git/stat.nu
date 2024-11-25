@@ -99,13 +99,18 @@ export def _git_status [] {
     $status
 }
 
-export def _git_log_stat [n]  {
+export def _git_log_stat [n --reverse]  {
     do -i {
-        git log --reverse -n $n --pretty=»¦«%h --stat
+        let stat = git log ...(if $reverse {[--reverse]} else {[]}) -n $n --pretty=»¦«%h --stat
         | lines
-        | reduce -f { c: '', r: [] } {|it, acc|
+        | reduce -f { c: {}, r: [] } {|it, acc|
             if ($it | str starts-with '»¦«') {
-                $acc | upsert c ($it | str substring 6.. )
+                if ($acc.c | is-not-empty) {
+                    $acc | upsert r ($acc.r | append $acc.c)
+                } else {
+                    $acc
+                }
+                | upsert c { sha: ($it | str substring 6..), file:0, ins:0, del:0 }
             } else if ($it | find -r '[0-9]+ file.+change' | is-empty) {
                 $acc
             } else {
@@ -116,7 +121,7 @@ export def _git_log_stat [n]  {
                         | parse -r "(?<num>[0-9]+) (?<col>.+)"
                         | get 0
                         }
-                    | reduce -f {sha: $acc.c file:0 ins:0 del:0} {|i,a|
+                    | reduce -f {sha: $acc.c.sha file:0 ins:0 del:0} {|i,a|
                         let col = if ($i.col | str starts-with 'file') {
                                 'file'
                             } else {
@@ -125,16 +130,16 @@ export def _git_log_stat [n]  {
                         let num = $i.num | into int
                         $a | upsert $col $num
                     }
-                $acc | upsert r ($acc.r | append $x)
+                $acc | upsert c $x
             }
         }
-        | get r
+        $stat.r | append $stat.c
     }
 }
 
-export def _git_log [verbose num] {
+export def _git_log [--verbose(-v) --num(-n):int --reverse] {
     let r = do -i {
-        git log --reverse -n $num --pretty=%h»¦«%s»¦«%aN»¦«%aE»¦«%aD»¦«%D
+        git log ...(if $reverse {[--reverse]} else {[]}) -n $num --pretty=%h»¦«%s»¦«%aN»¦«%aE»¦«%aD»¦«%D
         | lines
         | split column "»¦«" sha message author email date refs
         | each {|x|
@@ -149,7 +154,7 @@ export def _git_log [verbose num] {
         }
     }
     if $verbose {
-        $r | merge ( _git_log_stat $num )
+        $r | merge (_git_log_stat $num --reverse=$reverse )
     } else {
         $r
     }
@@ -162,7 +167,7 @@ export def git-log [
     --num(-n):int=32
 ] {
     if ($commit|is-empty) {
-        _git_log $verbose $num
+        _git_log --reverse --verbose=$verbose -n $num
     } else {
         git log --stat -p -n 1 $commit
     }

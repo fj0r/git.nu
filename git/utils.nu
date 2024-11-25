@@ -14,11 +14,15 @@ export def git-changes [] {
 }
 
 export def git-last-commit [] {
-    let d = git log --reverse -n 1 --pretty=%h»¦«%s | split row '»¦«'
-    {
-        hash: $d.0
-        message: $d.1
+    let d = _git_log --verbose -n 9
+    mut r = {}
+    for i in $d {
+        if ($i.file > 0) {
+            $r = $i
+            break
+        }
     }
+    $r | rename hash message
 }
 
 export def git-cdup [] {
