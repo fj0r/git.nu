@@ -360,12 +360,13 @@ export def git-merge [
     --quit (-q)
     --squash (-s)
     --fast-farward (-f)
+    --remote (-r)='origin':  string@cmpl-git-remotes
 ] {
     mut args = []
     if $squash { $args ++= [--squash] }
     if $fast_farward { $args ++= [--ff] } else { $args ++= [--no-ff] }
     if ($branch | is-empty) {
-        git merge ...$args $"origin/(git_main_branch)"
+        git merge ...$args $"($remote)/(git_main_branch)"
     } else {
         git merge ...$args $branch
     }

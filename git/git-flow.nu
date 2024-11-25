@@ -61,11 +61,12 @@ export def git-flow-close-feature [
     let b = git-flow-branches feature
     git checkout $b.dev
     git merge --no-ff $b.feature
+    let remote = git remote show
     if $pr {
         git checkout $b.feature
-        git push -u origin $b.feature
+        git push -u $remote $b.feature
     } else {
-        git push -u origin $b.dev
+        git push -u $remote $b.dev
         git branch -d $b.feature
     }
     git checkout $b.dev
@@ -90,10 +91,12 @@ export def git-flow-release [
     # ... bump
     do -i { git commit -a -m $"Bumped version number to ($tag)" }
 
+    let remote = git remote show
     git checkout $branches.main
     git merge --no-ff $rb
+    git push -u $remote $branches.main
     git tag -a $tag
-    git push -u origin $branches.main
+    git push $remote tag $tag
 
     do -i { git branch -d $rb }
     git checkout $branches.dev
