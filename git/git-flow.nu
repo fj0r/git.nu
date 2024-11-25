@@ -37,7 +37,8 @@ export def git-flow-branches [kind] {
     let curr = (_git_status).branch
     mut obj = $curr
     if not ($obj | str starts-with $"($branches | get $kind)($sep)") {
-        $obj = git-flow-select $kind | input list $"There are no ($kind) currently, pick?"
+        let r = git-flow-select $kind
+        $obj = if ($r | is-empty) { $r } else { $r | input list $"There are no ($kind) currently, pick?" }
     }
     {
         curr: $curr
@@ -60,6 +61,10 @@ export def git-flow-close-feature [
     --fast-farward (-f)
 ] {
     let b = git-flow-branches feature
+    if ($b.feature | is-empty) {
+        print $"(ansi grey)There are no feature branches.(ansi reset)"
+        return
+    }
     git checkout $b.dev
     let f = if $fast_farward {[--ff]} else {[--no-ff]}
     git merge ...$f $b.feature
