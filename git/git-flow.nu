@@ -89,7 +89,7 @@ export def git-flow-resolve-feature [
 }
 
 export def git-flow-release [
-    tag: string
+    tag?: string
     --fast-farward (-f)
 ] {
     let branches = $env.GIT_FLOW.branches
@@ -102,18 +102,23 @@ export def git-flow-release [
         git checkout -b $rb $branches.dev
         $rb
     }
-    # ... bump
-    do -i { git commit -a -m $"Bumped version number to ($tag)" }
+    if ($tag| is-not-empty) {
+        # ... bump
+        do -i { git commit -a -m $"Bumped version number to ($tag)" }
+    }
 
     let remote = git remote show
     git checkout $branches.main
     let f = if $fast_farward {[--ff]} else {[--no-ff]}
     git merge ...$f $rb
     git push -u $remote $branches.main
-    git tag -a $tag
-    git push $remote tag $tag
+    if not $fast_farward {
+        git tag -a $tag
+        git push $remote tag $tag
 
-    do -i { git branch -d $rb }
+        do -i { git branch -d $rb }
+    }
+
     git checkout $branches.dev
 }
 
