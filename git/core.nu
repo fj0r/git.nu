@@ -167,7 +167,7 @@ export def git-pull-push [
     --remote (-r)='origin':  string@cmpl-git-remotes  # remote
     --rebase
     --force (-f)             # git push -f
-    --override
+    --empty: string
     --submodule (-s)         # git submodule
     --init (-i)              # git init
     --autostash (-a)         # git pull --autostash
@@ -177,11 +177,11 @@ export def git-pull-push [
         git submodule update
     } else if $rebase {
         git pull --rebase
-    } else if $override {
+    } else if ($empty | is-not-empty) {
         git pull --rebase
         git add --all
-        git commit -v -a --no-edit --amend
-        git push --force
+        git commit --allow-empty -m $"🫙($empty)"
+        git push
     } else {
         let m = if $rebase { [--rebase] } else { [] }
         let a = if $autostash {[--autostash]} else {[]}
