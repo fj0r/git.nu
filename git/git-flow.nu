@@ -51,9 +51,9 @@ export def git-flow-branches [kind] {
 export def git-flow-open-feature [
     name: string
 ] {
-    let branches = $env.GIT_FLOW.branches
+    let b = $env.GIT_FLOW.branches
     let sep = $env.GIT_FLOW.separator
-    git checkout -b $"($branches.feature)($sep)($name)" $branches.dev
+    git checkout -b $"($b.feature)($sep)($name)" $b.dev
 }
 
 export def git-flow-close-feature [
@@ -92,14 +92,14 @@ export def git-flow-release [
     tag?: string
     --fast-farward (-f)
 ] {
-    let branches = $env.GIT_FLOW.branches
+    let b = $env.GIT_FLOW.branches
     let sep = $env.GIT_FLOW.separator
     let rb = if $fast_farward {
-        git checkout $branches.dev
-        $branches.dev
+        git checkout $b.dev
+        $b.dev
     } else {
-        let rb = $"($branches.release)($sep)($tag)"
-        git checkout -b $rb $branches.dev
+        let rb = $"($b.release)($sep)($tag)"
+        git checkout -b $rb $b.dev
         $rb
     }
     if ($tag| is-not-empty) {
@@ -108,10 +108,10 @@ export def git-flow-release [
     }
 
     let remote = git remote show
-    git checkout $branches.main
+    git checkout $b.main
     let f = if $fast_farward {[--ff]} else {[--no-ff]}
     git merge ...$f $rb
-    git push -u $remote $branches.main
+    git push -u $remote $b.main
     if not $fast_farward {
         git tag -a $tag
         git push $remote tag $tag
@@ -119,17 +119,17 @@ export def git-flow-release [
         do -i { git branch -d $rb }
     }
 
-    git checkout $branches.dev
+    git checkout $b.dev
 }
 
 
 export def git-flow-open-hotfix [
     tag: string
 ] {
-    let branches = $env.GIT_FLOW.branches
+    let b = $env.GIT_FLOW.branches
     let sep = $env.GIT_FLOW.separator
-    let rb = $"($branches.hotfix)($sep)($tag)"
-    git checkout -b $rb $branches.main
+    let rb = $"($b.hotfix)($sep)($tag)"
+    git checkout -b $rb $b.main
     # ... bump
     git commit -a -m $"Bumped version number to ($tag)"
 }
@@ -141,15 +141,25 @@ export def git-flow-close-hotfix [
 ] {
 
     let b = git-flow-branches hotfix
+    if ($b.hotfix | is-empty) {
+        print $"(ansi grey)There are no hotfix branches.(ansi reset)"
+        return
+    }
     git checkout $b.hotfix
 
     do -i { git commit -m $"Fixed: ($message)" }
 
+    let remote = git remote show
     let f = if $fast_farward {[--ff]} else {[--no-ff]}
     git checkout $b.main
     git merge ...$f $b.hotfix
-    let sep = $env.GIT_FLOW.separator
-    git tag -a ($b.hotfix | split row $sep | range 1.. | str join $sep)
+    git push -u $remote $b.main
+    if not $fast_farward {
+        let sep = $env.GIT_FLOW.separator
+        let t = $b.hotfix | split row $sep | range 1.. | str join $sep
+        git tag -a $t
+        git push $remote tag $t
+    }
 
     git checkout $b.dev
     git merge ...$f $b.hotfix
