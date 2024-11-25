@@ -90,6 +90,7 @@ export def git-flow-resolve-feature [
 
 export def git-flow-release [
     tag?: string
+    --action(-a): closure
 ] {
     let b = $env.GIT_FLOW.branches
     let sep = $env.GIT_FLOW.separator
@@ -104,6 +105,9 @@ export def git-flow-release [
         git checkout -b $rb $b.dev
 
         # ... bump
+        if ($action | is-not-empty) {
+            do $action $tag
+        }
         do -i { git commit -a -m $"Bumped version number to ($tag)" }
 
         $rb
