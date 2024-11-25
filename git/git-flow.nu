@@ -90,29 +90,28 @@ export def git-flow-resolve-feature [
 
 export def git-flow-release [
     tag?: string
-    --fast-farward (-f)
 ] {
     let b = $env.GIT_FLOW.branches
     let sep = $env.GIT_FLOW.separator
-    let rb = if $fast_farward {
+    let rb = if ($tag | is-empty) {
         git checkout $b.dev
         $b.dev
     } else {
         let rb = $"($b.release)($sep)($tag)"
         git checkout -b $rb $b.dev
-        $rb
-    }
-    if ($tag| is-not-empty) {
+
         # ... bump
         do -i { git commit -a -m $"Bumped version number to ($tag)" }
+
+        $rb
     }
 
     let remote = git remote show
     git checkout $b.main
-    let f = if $fast_farward {[--ff]} else {[--no-ff]}
+    let f = if ($tag | is-empty) {[--ff]} else {[--no-ff]}
     git merge ...$f $rb
     git push -u $remote $b.main
-    if not $fast_farward {
+    if ($tag | is-not-empty) {
         git tag -a $tag
         git push $remote tag $tag
 
@@ -136,8 +135,7 @@ export def git-flow-open-hotfix [
 
 
 export def git-flow-close-hotfix [
-    message: string
-    --fast-farward (-f)
+    message?: string
 ] {
 
     let b = git-flow-branches hotfix
@@ -150,11 +148,11 @@ export def git-flow-close-hotfix [
     do -i { git commit -m $"Fixed: ($message)" }
 
     let remote = git remote show
-    let f = if $fast_farward {[--ff]} else {[--no-ff]}
+    let f = if ($message | is-empty) {[--ff]} else {[--no-ff]}
     git checkout $b.main
     git merge ...$f $b.hotfix
     git push -u $remote $b.main
-    if not $fast_farward {
+    if ($message | is-not-empty) {
         let sep = $env.GIT_FLOW.separator
         let t = $b.hotfix | split row $sep | range 1.. | str join $sep
         git tag -a $t
