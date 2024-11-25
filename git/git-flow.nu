@@ -57,10 +57,12 @@ export def git-flow-open-feature [
 
 export def git-flow-close-feature [
     --pr
+    --fast-farward (-f)
 ] {
     let b = git-flow-branches feature
     git checkout $b.dev
-    git merge --no-ff $b.feature
+    let f = if $fast_farward {[--ff]} else {[--no-ff]}
+    git merge ...$f $b.feature
     let remote = git remote show
     if $pr {
         git checkout $b.feature
@@ -83,6 +85,7 @@ export def git-flow-resolve-feature [
 
 export def git-flow-release [
     tag: string
+    --fast-farward (-f)
 ] {
     let branches = $env.GIT_FLOW.branches
     let sep = $env.GIT_FLOW.separator
@@ -93,7 +96,8 @@ export def git-flow-release [
 
     let remote = git remote show
     git checkout $branches.main
-    git merge --no-ff $rb
+    let f = if $fast_farward {[--ff]} else {[--no-ff]}
+    git merge ...$f $rb
     git push -u $remote $branches.main
     git tag -a $tag
     git push $remote tag $tag
@@ -117,6 +121,7 @@ export def git-flow-open-hotfix [
 
 export def git-flow-close-hotfix [
     message: string
+    --fast-farward (-f)
 ] {
 
     let b = git-flow-branches hotfix
@@ -124,13 +129,14 @@ export def git-flow-close-hotfix [
 
     do -i { git commit -m $"Fixed: ($message)" }
 
+    let f = if $fast_farward {[--ff]} else {[--no-ff]}
     git checkout $b.main
-    git merge --no-ff $b.hotfix
+    git merge ...$f $b.hotfix
     let sep = $env.GIT_FLOW.separator
     git tag -a ($b.hotfix | split row $sep | range 1.. | str join $sep)
 
     git checkout $b.dev
-    git merge --no-ff $b.hotfix
+    git merge ...$f $b.hotfix
 
     git branch -d $b.hotfix
 }
