@@ -89,8 +89,14 @@ export def git-flow-release [
 ] {
     let branches = $env.GIT_FLOW.branches
     let sep = $env.GIT_FLOW.separator
-    let rb = $"($branches.release)($sep)($tag)"
-    git checkout -b $rb $branches.dev
+    let rb = if $fast_farward {
+        git checkout $branches.dev
+        $branches.dev
+    } else {
+        let rb = $"($branches.release)($sep)($tag)"
+        git checkout -b $rb $branches.dev
+        $rb
+    }
     # ... bump
     do -i { git commit -a -m $"Bumped version number to ($tag)" }
 
