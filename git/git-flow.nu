@@ -93,8 +93,11 @@ export def git-flow-release [
 ] {
     let b = $env.GIT_FLOW.branches
     let sep = $env.GIT_FLOW.separator
+    let remote = git remote show
+    git checkout $b.dev
+    git push -u $remote $b.dev
+
     let rb = if ($tag | is-empty) {
-        git checkout $b.dev
         $b.dev
     } else {
         let rb = $"($b.release)($sep)($tag)"
@@ -106,7 +109,6 @@ export def git-flow-release [
         $rb
     }
 
-    let remote = git remote show
     git checkout $b.main
     let f = if ($tag | is-empty) {[--ff]} else {[--no-ff]}
     git merge ...$f $rb
