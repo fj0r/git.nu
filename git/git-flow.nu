@@ -166,13 +166,16 @@ export def gitflow-close-hotfix [
 
 export def gitlab-open-feature [
     name: string
+    --local(-l)
 ] {
     let b = $env.GIT_FLOW.branches
     let sep = $env.GIT_FLOW.separator
     let remote = git remote show
     let f = $"($b.feature)($sep)($name)"
     git checkout -b $f $b.main
-    git push -u $remote $f
+    if not $local {
+        git push -u $remote $f
+    }
 }
 
 export def gitlab-close-feature [
