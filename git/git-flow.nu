@@ -173,20 +173,27 @@ export def gitlab-open-feature [
 
 export def gitlab-close-feature [
     --fast-farward (-f)
+    --local(-l)
 ] {
     let b = git-kind-branches feature
     if ($b.feature | is-empty) {
         print $"(ansi grey)There are no feature branches.(ansi reset)"
         return
     }
-    git checkout $b.main
-    let f = if $fast_farward {[--ff]} else {[--no-ff]}
-    git merge ...$f $b.feature
+
     let remote = git remote show
-    git checkout $b.feature
-    git push -u $remote $b.feature
     git checkout $b.main
-    git branch -d $b.feature
+    if $local {
+        let f = if $fast_farward {[--ff]} else {[--no-ff]}
+        git merge ...$f $b.feature
+        git branch -d $b.feature
+        git push
+    } else {
+        git checkout $b.feature
+        git push -u $remote $b.feature
+        git branch -d $b.feature
+        git checkout $b.main
+    }
 }
 
 export def gitlab-resolve-feature [
