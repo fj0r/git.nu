@@ -25,9 +25,16 @@ export alias gsw = git switch
 export alias gswc = git switch -c
 export alias gts = git tag -s
 
-export alias gof = git-flow-open-feature
-export alias gcf = git-flow-close-feature
-export alias grf = git-flow-resolve-feature
-export alias gfr = git-flow-release
-export alias goh = git-flow-open-hotfix
-export alias gch = git-flow-close-hotfix
+export alias gfof = gitflow-open-feature
+export alias gfcf = gitflow-close-feature
+export alias gfrf = gitflow-resolve-feature
+export alias gfrl = gitflow-release
+export alias gfoh = gitflow-open-hotfix
+export alias gfch = gitflow-close-hotfix
+
+export alias gof = gitlab-open-feature
+export alias gcf = gitlab-close-feature
+export alias grf = gitlab-resolve-feature
+export alias grl = gitlab-release
+export alias goh = gitflow-open-hotfix
+export alias gch = gitflow-close-hotfix

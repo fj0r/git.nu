@@ -15,7 +15,7 @@ export-env {
     }
 }
 
-def git-flow-select [kind] {
+def git-kind-select [kind] {
     git branch
     | lines
     | filter { $in | str starts-with '*' | not $in }
@@ -28,16 +28,16 @@ def git-flow-select [kind] {
 }
 
 export def cmpl-git-features [] {
-    git-flow-select feature
+    git-kind-select feature
 }
 
-export def git-flow-branches [kind] {
+export def git-kind-branches [kind] {
     let branches = $env.GIT_FLOW.branches
     let sep = $env.GIT_FLOW.separator
     let curr = (_git_status).branch
     mut obj = $curr
     if not ($obj | str starts-with $"($branches | get $kind)($sep)") {
-        let r = git-flow-select $kind
+        let r = git-kind-select $kind
         $obj = if ($r | is-empty) { $r } else { $r | input list $"There are no ($kind) currently, pick?" }
     }
     {
@@ -48,7 +48,7 @@ export def git-flow-branches [kind] {
     }
 }
 
-export def git-flow-open-feature [
+export def gitflow-open-feature [
     name: string
 ] {
     let b = $env.GIT_FLOW.branches
@@ -56,11 +56,10 @@ export def git-flow-open-feature [
     git checkout -b $"($b.feature)($sep)($name)" $b.dev
 }
 
-export def git-flow-close-feature [
-    --pr
+export def gitflow-close-feature [
     --fast-farward (-f)
 ] {
-    let b = git-flow-branches feature
+    let b = git-kind-branches feature
     if ($b.feature | is-empty) {
         print $"(ansi grey)There are no feature branches.(ansi reset)"
         return
@@ -69,18 +68,12 @@ export def git-flow-close-feature [
     let f = if $fast_farward {[--ff]} else {[--no-ff]}
     git merge ...$f $b.feature
     let remote = git remote show
-    if $pr {
-        git checkout $b.feature
-        git push -u $remote $b.feature
-    } else {
-        git push -u $remote $b.dev
-        git branch -d $b.feature
-    }
+    git push -u $remote $b.dev
+    git branch -d $b.feature
     git checkout $b.dev
 }
 
-export def git-flow-resolve-feature [
-    --pr
+export def gitflow-resolve-feature [
 ] {
     git checkout $env.GIT_FLOW.branches.dev
     git add .
@@ -88,7 +81,7 @@ export def git-flow-resolve-feature [
     git push
 }
 
-export def git-flow-release [
+export def gitflow-release [
     tag?: string
     --action(-a): closure
 ] {
@@ -104,7 +97,6 @@ export def git-flow-release [
         let rb = $"($b.release)($sep)($tag)"
         git checkout -b $rb $b.dev
 
-        # ... bump
         if ($action | is-not-empty) {
             do $action $tag
         }
@@ -128,7 +120,7 @@ export def git-flow-release [
 }
 
 
-export def git-flow-open-hotfix [
+export def gitflow-open-hotfix [
     tag: string
 ] {
     let b = $env.GIT_FLOW.branches
@@ -140,11 +132,11 @@ export def git-flow-open-hotfix [
 }
 
 
-export def git-flow-close-hotfix [
+export def gitflow-close-hotfix [
     message?: string
 ] {
 
-    let b = git-flow-branches hotfix
+    let b = git-kind-branches hotfix
     if ($b.hotfix | is-empty) {
         print $"(ansi grey)There are no hotfix branches.(ansi reset)"
         return
@@ -169,4 +161,80 @@ export def git-flow-close-hotfix [
     git merge ...$f $b.hotfix
 
     git branch -d $b.hotfix
+}
+
+export def gitlab-open-feature [
+    name: string
+] {
+    let b = $env.GIT_FLOW.branches
+    let sep = $env.GIT_FLOW.separator
+    git checkout -b $"($b.feature)($sep)($name)" $b.main
+}
+
+export def gitlab-close-feature [
+    --fast-farward (-f)
+] {
+    let b = git-kind-branches feature
+    if ($b.feature | is-empty) {
+        print $"(ansi grey)There are no feature branches.(ansi reset)"
+        return
+    }
+    git checkout $b.main
+    let f = if $fast_farward {[--ff]} else {[--no-ff]}
+    git merge ...$f $b.feature
+    let remote = git remote show
+    git checkout $b.feature
+    git push -u $remote $b.feature
+    git checkout $b.main
+    git branch -d $b.feature
+}
+
+export def gitlab-resolve-feature [
+] {
+    git checkout $env.GIT_FLOW.branches.main
+    git add .
+    git commit
+    git push
+}
+
+
+export def gitlab-release [
+    tag?: string
+    --from(-f): string
+    --to(-t): string = 'pre-production'
+    --action(-a): closure
+] {
+    let b = $env.GIT_FLOW.branches
+    let sep = $env.GIT_FLOW.separator
+    let remote = git remote show
+    let $from = if ($from | is-empty) { $b.main } else { $from }
+    git checkout $from
+    git push -u $remote $from
+
+    let rb = if ($tag | is-empty) {
+        $from
+    } else {
+        let rb = $"($b.release)($sep)($tag)"
+        git checkout -b $rb $from
+
+        if ($action | is-not-empty) {
+            do $action $tag
+        }
+        do -i { git commit -a -m $"Bumped version number to ($tag)" }
+
+        $rb
+    }
+
+    git checkout $to
+    let f = if ($tag | is-empty) {[--ff]} else {[--no-ff]}
+    git merge ...$f $rb
+    git push -u $remote $rb
+    if ($tag | is-not-empty) {
+        git tag -a $tag
+        git push $remote tag $tag
+
+        do -i { git branch -d $rb }
+    }
+
+    git checkout $b.main
 }
