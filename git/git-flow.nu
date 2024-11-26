@@ -1,6 +1,7 @@
 use utils.nu *
 use core.nu *
 use complete.nu *
+use stat.nu *
 
 export-env {
     $env.GIT_FLOW = {
@@ -168,7 +169,10 @@ export def gitlab-open-feature [
 ] {
     let b = $env.GIT_FLOW.branches
     let sep = $env.GIT_FLOW.separator
-    git checkout -b $"($b.feature)($sep)($name)" $b.main
+    let remote = git remote show
+    let f = $"($b.feature)($sep)($name)"
+    git checkout -b $f $b.main
+    git push -u $remote $f
 }
 
 export def gitlab-close-feature [
@@ -186,13 +190,15 @@ export def gitlab-close-feature [
     if $local {
         let f = if $fast_farward {[--ff]} else {[--no-ff]}
         git merge ...$f $b.feature
-        git branch -d $b.feature
         git push
     } else {
-        git checkout $b.feature
-        git push -u $remote $b.feature
-        git branch -d $b.feature
-        git checkout $b.main
+        git pull
+    }
+    git branch -D $b.feature
+    let rb = $'($remote)/($b.feature)'
+    if $rb in (remote_branches) {
+        git branch -D -r $rb
+        git push $remote -d $b.feature
     }
 }
 
