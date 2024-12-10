@@ -445,7 +445,7 @@ export def git-reset [
     mut args = []
     if $hard { $args ++= [--hard] }
     if $soft { $args ++= [--soft] }
-    if ($commit | is-not-empty) { $args ++= $commit }
+    if ($commit | is-not-empty) { $args ++= [$commit] }
     git reset ...$args
     if $clean {
         git clean -fd
