@@ -99,64 +99,69 @@ export def _git_status [] {
     $status
 }
 
-export def _git_log_stat [n --reverse]  {
-    do -i {
-        let stat = git log ...(if $reverse {[--reverse]} else {[]}) -n $n --pretty=»¦«%h --stat
-        | lines
-        | reduce -f { c: {}, r: [] } {|it, acc|
-            if ($it | str starts-with '»¦«') {
-                if ($acc.c | is-not-empty) {
-                    $acc | upsert r ($acc.r | append $acc.c)
-                } else {
-                    $acc
-                }
-                | upsert c { sha: ($it | str substring 6..), file:0, ins:0, del:0 }
-            } else if ($it | find -r '[0-9]+ file.+change' | is-empty) {
-                $acc
-            } else {
-                let x = $it
-                    | split row ','
-                    | each {|x| $x
-                        | str trim
-                        | parse -r "(?<num>[0-9]+) (?<col>.+)"
-                        | get 0
-                        }
-                    | reduce -f {sha: $acc.c.sha file:0 ins:0 del:0} {|i,a|
-                        let col = if ($i.col | str starts-with 'file') {
-                                'file'
-                            } else {
-                                $i.col | str substring ..<3
-                            }
-                        let num = $i.num | into int
-                        $a | upsert $col $num
+def git-parse-stat [o: list<string>] {
+    mut r = { file:0, ins:0, del:0, change:[] }
+    for i in $o {
+        if ($i | is-empty) { continue }
+        if ($i | find -r '[0-9]+ file.+change' | is-not-empty) {
+            for j in ($i
+                | split row ','
+                | each {|x| $x | str trim | parse -r "(?<num>[0-9]+) (?<col>.+)" | first }
+            ) {
+                let col = if ($j.col | str starts-with 'file') {
+                        'file'
+                    } else {
+                        $j.col | str substring ..<3
                     }
-                $acc | upsert c $x
+                let num = $j.num | into int
+                $r = $r | upsert $col $num
             }
+        } else {
+            $r.change ++= [ ($i | split row '|' | first | str trim) ]
         }
-        $stat.r | append $stat.c
     }
+    $r
 }
 
-export def _git_log [--verbose(-v) --num(-n):int --reverse] {
-    let r = do -i {
-        git log ...(if $reverse {[--reverse]} else {[]}) -n $num --pretty=%h»¦«%s»¦«%aN»¦«%aE»¦«%aD»¦«%D
-        | lines
-        | split column "»¦«" sha message author email date refs
-        | each {|x|
-            let refs = if ($x.refs | is-empty) {
-                $x.refs
+export def _git_log [
+    --num(-n):int = 9
+    --reverse(-r)
+    --verbose(-v)
+] {
+    let s = $"»(random chars -l 4)«"
+    let p = $"($s)%h($s)%s($s)%aN($s)%aE($s)%aD($s)%D"
+    mut a = [-n $num $"--pretty=($p)"]
+    if $reverse { $a ++= [--reverse] }
+    if $verbose { $a ++= [--stat] }
+    git log ...$a
+    | lines
+    | append $s
+    | reduce -f {c: { body: [] }, r: [] } {|it, acc|
+        if ($it | str starts-with $s) {
+            let c = if $verbose {
+                $acc.c | merge (git-parse-stat $acc.c.body)
             } else {
-                $x.refs | split row ", "
+                $acc.c
             }
-            $x
-            | update date { $x.date | into datetime }
-            | update refs $refs
+            | reject body
+
+            $acc
+            | upsert r ($acc.r | append $c)
+            | update c ($it | split column $s _ sha message author email date refs | first | reject _ | insert body [])
+        } else {
+            $acc | update c.body {|x| $x.c.body | append $it }
         }
     }
-    if $verbose {
-        $r | merge (_git_log_stat $num --reverse=$reverse )
-    } else {
-        $r
+    | get r | range 1..
+    | each {|x|
+        let refs = if ($x.refs | is-empty) {
+            $x.refs
+        } else {
+            $x.refs | split row ", "
+        }
+        $x
+        | update date { $x.date | into datetime }
+        | update refs $refs
     }
 }
 
