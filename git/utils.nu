@@ -20,15 +20,12 @@ export def git-changes [] {
 }
 
 export def git-last-commit [] {
-    let d = _git_log --verbose -n 9
-    mut r = {}
+    let d = git log -n 9 --pretty=%h»¦«%s | lines | split column '»¦«' hash message
     for i in $d {
-        if ($i.file > 0) {
-            $r = $i
-            break
+        if (git-commit-changes $i.hash | is-not-empty) {
+            return $i
         }
     }
-    $r | rename hash message
 }
 
 export def git-cdup [] {
