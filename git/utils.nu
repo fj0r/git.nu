@@ -11,6 +11,10 @@ export def git-is-repo [] {
     (git rev-parse --is-inside-work-tree | complete).exit_code == 0
 }
 
+export def git-commit-changes [commit:string] {
+    git diff-tree --no-commit-id --name-only -r $commit | lines
+}
+
 export def git-changes [] {
     do -i { git --no-optional-locks status --porcelain=1 | lines }
 }
