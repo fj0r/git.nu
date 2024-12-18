@@ -28,7 +28,7 @@ def git-kind-select [kind] {
     }
 }
 
-export def cmpl-git-features [] {
+def cmpl-git-features [] {
     git-kind-select feature
 }
 

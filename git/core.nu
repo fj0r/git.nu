@@ -293,7 +293,7 @@ export def git-delete [
 }
 
 
-export def cmpl-commit-type [] {
+def cmpl-commit-type [] {
     $env.GIT_COMMIT_TYPE | columns
 }
 
