@@ -83,3 +83,5 @@ Git bisect
 
 ### git-sync
 
+---
+[Others](https://github.com/fj0r/nushell/blob/main/README.md)
