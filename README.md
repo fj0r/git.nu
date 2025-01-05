@@ -1,3 +1,5 @@
+# Git, Workflow, Activities
+
 ## Core
 Consider putting related commands together, such as `push` and `pull`,
 to decide how to execute based on the current environment or specified parameters.
