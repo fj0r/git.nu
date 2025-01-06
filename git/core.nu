@@ -207,8 +207,8 @@ export def git-pull-push [
                 }
             } else {
                 tips $"local doesn't have ($branch_repr) branch, fetch"
-                git checkout -b $branch
-                git fetch $remote $branch
+                git fetch $remote $"($branch):($branch)"
+                git checkout $branch
                 git branch -u $'($remote)/($branch)' $branch
                 git pull ...$m ...$a -v
             }
