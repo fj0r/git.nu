@@ -50,7 +50,7 @@ export def git-branch [
 ] {
     let bs = git branch | lines | each {|x| $x | str substring 2..}
     if $delete {
-        let remote_branches = (remote_branches)
+        let remote_branches = remote_branches
         if ($branch | is-empty) {
             let dels = if $no_merged { gb } else {
                  gb
@@ -183,13 +183,14 @@ export def git-pull-push [
         git commit --allow-empty -m $"🫙($empty)"
         git push
     } else {
+        # git fetch --prune
         let m = if $rebase { [--rebase] } else { [] }
         let a = if $autostash {[--autostash]} else {[]}
         let prev = (_git_status).branch
         let branch = if ($branch | is-empty) { $prev } else { $branch }
         let branch_repr = $'(ansi yellow)($branch)(ansi light_gray)'
         let lbs = git branch | lines | each { $in | str substring 2..}
-        let rbs = (remote_branches)
+        let rbs = remote_branches
         if $"($remote)/($branch)" in $rbs {
             if $branch in $lbs {
                 let bmsg = $'both local and remote have ($branch_repr) branch'
@@ -430,7 +431,7 @@ export def git-cherry-pick [
 # copy file from other branch
 export def git-copy-file [
     branch:     string@cmpl-git-branches
-    ...file:       string@cmpl-git-branch-files
+    ...file:    string@cmpl-git-branch-files
 ] {
     ^git checkout $branch $file
 }
