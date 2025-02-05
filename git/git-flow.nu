@@ -153,7 +153,7 @@ export def gitflow-close-hotfix [
     git push -u $remote $b.main
     if ($message | is-not-empty) {
         let sep = $env.GIT_FLOW.separator
-        let t = $b.hotfix | split row $sep | range 1.. | str join $sep
+        let t = $b.hotfix | split row $sep | slice 1.. | str join $sep
         git tag -a $t
         git push $remote tag $t
     }

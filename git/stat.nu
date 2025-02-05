@@ -152,7 +152,7 @@ export def _git_log [
             $acc | update c.body {|x| $x.c.body | append $it }
         }
     }
-    | get r | range 1..
+    | get r | slice 1..
     | each {|x|
         let refs = if ($x.refs | is-empty) {
             $x.refs
