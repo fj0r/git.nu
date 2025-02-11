@@ -193,8 +193,8 @@ export def git-log [
                         $m ++= [$"## ($j)"]
                     }
                 }
-                $m ++= [$"### ($i.date | format date '%y-%m-%d/%w/%H:%M:%S')\n"]
-                $m ++= [$"**($i.sha)** ($i.message)\n"]
+                $m ++= [$"###### ($i.message)\n"]
+                $m ++= [$"> ($i.date | format date '%y-%m-%d/%w/%H:%M:%S') ($i.sha)\n"]
                 if ($i.body | str trim | is-not-empty) {
                     $m ++= [$"($i.body)"]
                 }
