@@ -20,7 +20,9 @@ export def git-changes [] {
 }
 
 export def git-last-commit [] {
-    let d = git log -n 9 --pretty=%h»¦«%s | lines | split column '»¦«' hash message
+    let d = git log -n 9 --pretty=»»¦««%h»¦«%s»¦«%b
+    | split row '»»¦««' | slice 1..
+    | split column '»¦«' hash message body
     for i in $d {
         if (git-commit-changes $i.hash | is-not-empty) {
             return $i
@@ -48,12 +50,16 @@ export def git-sync [
     --init: string
     --post-sync: closure
     --init-post-sync: closure
-    --trans-name: closure
+    --trans-msg: closure
 ] {
     let src = $src | path expand
     cd $src
     let l = git-last-commit
-    let msg = if ($trans_name | is-empty) { $l.message } else { do $trans_name $l.message }
+    let msg = if ($trans_msg | is-empty) {
+        $"($l.message)\n\n($l.body)"
+    } else {
+        do $trans_msg $l
+    }
     let dest = $dest | path expand
     if not ($dest | path exists) { mkdir $dest }
     cd $dest
