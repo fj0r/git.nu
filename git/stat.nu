@@ -129,27 +129,34 @@ export def _git_log [
     --verbose(-v)
 ] {
     let s = $"»(random chars -l 4)«"
-    let p = $"($s)%h($s)%s($s)%aN($s)%aE($s)%aD($s)%D"
+    let S = $"»(random chars -l 6)«"
+    let p = $"($S)($s)%h($s)%s($s)%aN($s)%aE($s)%aD($s)%D($s)%b"
     mut a = [-n $num $"--pretty=($p)"]
     if $reverse { $a ++= [--reverse] }
     if $verbose { $a ++= [--stat] }
     git log ...$a
-    | lines
+    | split row $S | slice 1..
     | append $s
-    | reduce -f {c: { body: [] }, r: [] } {|it, acc|
+    | reduce -f {c: { payload: [] }, r: [] } {|it, acc|
         if ($it | str starts-with $s) {
             let c = if $verbose {
-                $acc.c | merge (git-parse-stat $acc.c.body)
+                $acc.c | merge (git-parse-stat $acc.c.payload)
             } else {
                 $acc.c
             }
-            | reject body
+            | reject payload
 
             $acc
             | upsert r ($acc.r | append $c)
-            | update c ($it | split column $s _ sha message author email date refs | first | reject _ | insert body [])
+            | update c (
+                $it
+                | split column $s _ sha message author email date refs body
+                | first
+                | reject _
+                | insert payload []
+            )
         } else {
-            $acc | update c.body {|x| $x.c.body | append $it }
+            $acc | update c.payload {|x| $x.c.payload | append $it }
         }
     }
     | get r | slice 1..
@@ -168,11 +175,34 @@ export def _git_log [
 # git log
 export def git-log [
     commit?: string@cmpl-git-log
+    --markdown(-m)
     --verbose(-v)
+    --reverse(-r)
     --num(-n):int=32
 ] {
     if ($commit|is-empty) {
-        _git_log --reverse --verbose=$verbose -n $num
+        let r = _git_log --reverse=(not $reverse) --verbose=$verbose -n $num
+        if $markdown {
+            mut m = []
+            for i in $r {
+                if ($i.refs | is-not-empty) {
+                    let t = $i.refs
+                    | filter {|x| $x | str starts-with 'tag: ' }
+                    | each {|x| $x | str substring 5.. }
+                    for j in $t {
+                        $m ++= [$"## ($j)"]
+                    }
+                }
+                $m ++= [$"### ($i.date | format date '%y-%m-%d/%w/%H:%M:%S')\n"]
+                $m ++= [$"**($i.sha)** ($i.message)\n"]
+                if ($i.body | str trim | is-not-empty) {
+                    $m ++= [$"($i.body)"]
+                }
+            }
+            $m | str join "\n"
+        } else {
+            $r
+        }
     } else {
         git log --stat -p -n 1 $commit
     }
