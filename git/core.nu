@@ -523,7 +523,11 @@ export def git-truncate-history [
 export def git-squash-last [
     num:int
 ] {
-    let l = git log --pretty=%s -n $num
+    let l = git log  --pretty=»»¦««%s»¦«%b -n $num
+    | split row '»»¦««' | slice 1..
+    | split column '»¦«' message body
+    | each { $"($in.message)\n\n($in.body)" }
+    | str join "\n===\n"
     git reset --soft $"HEAD~($num)"
     git commit --edit -m $l
 }
