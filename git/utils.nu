@@ -15,6 +15,16 @@ export def git-commit-changes [commit:string] {
     git diff-tree --no-commit-id --name-only -r $commit | lines
 }
 
+export def git-last-changes [] {
+    let d = git log -n 9 --pretty=%h»¦«%s | lines | split column '»¦«' hash message
+    for i in $d {
+        let r = git-commit-changes $i.hash
+        if ($r | is-not-empty) {
+            return $r
+        }
+    }
+}
+
 export def git-changes [] {
     do -i { git --no-optional-locks status --porcelain=1 | lines }
 }
