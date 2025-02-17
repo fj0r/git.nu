@@ -23,6 +23,7 @@ export def git-last-changes [] {
             return $r
         }
     }
+    []
 }
 
 export def git-changes [] {
