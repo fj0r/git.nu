@@ -201,7 +201,7 @@ export def git-log [
             }
             $m | str join "\n"
         } else {
-            $r
+            $r | update body {|x| $x.body | str trim}
         }
     } else {
         git log --stat -p -n 1 $commit
