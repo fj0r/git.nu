@@ -414,18 +414,24 @@ export def git-cherry-pick [
     --continue (-c)
     --skip (-s)
     --quit (-q)
+    --no-commit (-n)
 ] {
+    mut args = []
     if $abort {
-        git cherry-pick --abort
+        $args ++= [--abort]
     } else if $continue {
-        git cherry-pick --continue
+        $args ++= [--continue]
     } else if $skip {
-        git cherry-pick --skip
+        $args ++= [--skip]
     } else if $quit {
-        git cherry-pick --quit
+        $args ++= [--quit]
     } else {
-        git cherry-pick $commit
+        if $no_commit {
+            $args ++= [--no-commit]
+        }
+        $args ++= [$commit]
     }
+    git cherry-pick ...$args
 }
 
 # copy file from other branch
