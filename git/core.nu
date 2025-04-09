@@ -331,7 +331,8 @@ export def git-commit [
 
 # git diff
 export def git-diff [
-    ...file:            path
+    commit?:          string@cmpl-git-log-all
+    commit2?:         string@cmpl-git-log-all
     --cached (-c)     # cached
     --unstashed (-u)  # unstashed
     --word-diff (-w)  # word-diff
@@ -341,15 +342,19 @@ export def git-diff [
     if $word_diff { $args ++= [--word-diff] }
     if $cached { $args ++= [--cached] }
     if $staged { $args ++= [--staged] }
-    if ($args | is-empty) {
-        let s = _git_status
+    let s = _git_status
+    if ($commit | is-empty) {
         if ($s | sum_prefix 'wt_') > 0 {
-            git diff ...$file
+            git diff ...$args
         } else if ($s | sum_prefix 'idx_') > 0 {
-            git diff ...$file --staged
+            git diff ...$args --staged
         }
     } else {
-        git diff ...$args ...$file
+        if ($commit2 | is-empty) {
+            git diff ...$args $s.branch $commit
+        } else {
+            git diff ...$args $commit $commit2
+        }
     }
 }
 
