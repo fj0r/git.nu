@@ -20,13 +20,13 @@ export def cmpl-git-branch-files [context: string, offset:int] {
     let files = $token | skip 2
     git ls-tree -r --name-only $branch
     | lines
-    | filter {|x| not ($x in $files)}
+    | where {|x| not ($x in $files)}
 }
 
 export def cmpl-git-branches [] {
     git branch
     | lines
-    | filter {|x| not ($x | str starts-with '*')}
+    | where {|x| not ($x | str starts-with '*')}
     | each {|x| $"($x|str trim)"}
 }
 

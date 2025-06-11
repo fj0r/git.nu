@@ -187,7 +187,7 @@ export def git-log [
             for i in $r {
                 if ($i.refs | is-not-empty) {
                     let t = $i.refs
-                    | filter {|x| $x | str starts-with 'tag: ' }
+                    | where {|x| $x | str starts-with 'tag: ' }
                     | each {|x| $x | str substring 5.. }
                     for j in $t {
                         $m ++= [$"## ($j)"]
@@ -213,7 +213,7 @@ export def remote_branches [] {
     git branch -r
     | lines
     | str trim
-    | filter {|x| not ($x | str starts-with 'origin/HEAD') }
+    | where {|x| not ($x | str starts-with 'origin/HEAD') }
 }
 
 export def git_main_branch [] {

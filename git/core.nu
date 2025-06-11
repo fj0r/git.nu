@@ -74,7 +74,7 @@ export def git-branch [
                 git branch -D $b
             }
             if ($dels | is-not-empty) and (agree 'delete remote branch?!') {
-                for b in ($dels | filter { $"($remote)/($in)" in $remote_branches }) {
+                for b in ($dels | where { $"($remote)/($in)" in $remote_branches }) {
                     tips $"delete (ansi yellow)($remote)/($b)"
                     git branch -D -r $'($remote)/($b)'
                     git push $remote -d $b

@@ -19,9 +19,9 @@ export-env {
 def git-kind-select [kind] {
     git branch
     | lines
-    | filter { $in | str starts-with '*' | not $in }
+    | where { $in | str starts-with '*' | not $in }
     | each {|x| $"($x|str trim)"}
-    | filter {|x|
+    | where {|x|
         let branches = $env.GIT_FLOW.branches
         let sep = $env.GIT_FLOW.separator
         $x | str starts-with $"($branches | get $kind)($sep)"
