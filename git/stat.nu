@@ -181,7 +181,7 @@ export def git-log [
     --num(-n):int=32
 ] {
     if ($commit|is-empty) {
-        let r = _git_log --reverse=(not $reverse) --verbose=$verbose -n $num
+        let r = _git_log --reverse=$reverse --verbose=$verbose -n $num
         if $markdown {
             mut m = []
             for i in $r {
