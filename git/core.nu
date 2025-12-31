@@ -402,7 +402,7 @@ export def git-merge [
 # git rebase
 export def git-rebase [
     branch?:            string@cmpl-git-branches
-    --from (-f)
+    --from (-f):        string@cmpl-git-branches
     --interactive (-i)
     --onto (-o):        string
     --abort (-a)
@@ -422,11 +422,15 @@ export def git-rebase [
     } else if ($onto | is-not-empty) {
         $args ++= [--onto $branch]
     } else {
-        if $interactive { $args ++= [--interactive] }
-        if ($branch | is-empty) {
-            $args ++= [(git_main_branch)]
-        } else {
+        if $interactive {
+            $args ++= [--interactive]
+        }
+        if ($from | is-not-empty) {
+            $args ++= [curr $from]
+        } else if ($branch | is-not-empty) {
             $args ++= [$branch]
+        } else {
+            $args ++= [(git_main_branch)]
         }
     }
     git rebase ...$args
@@ -475,9 +479,15 @@ export def git-reset [
     --clean (-c)
 ] {
     mut args = []
-    if $hard { $args ++= [--hard] }
-    if $soft { $args ++= [--soft] }
-    if ($commit | is-not-empty) { $args ++= [$commit] }
+    if $hard {
+        $args ++= [--hard]
+    }
+    if $soft {
+        $args ++= [--soft]
+    }
+    if ($commit | is-not-empty) {
+        $args ++= [$commit]
+    }
     git reset ...$args
     if $clean {
         git clean -fd
@@ -532,33 +542,4 @@ export def git-bisect [
     } else {
         git bisect
     }
-}
-
-export def git-garbage-collect [] {
-    git reflog expire --all --expire=now
-    git gc --aggressive --prune=now
-}
-
-export def git-truncate-history [
-    retain:int=10
-    --message:string="Truncate history"
-] {
-    let h = git log --pretty=%H --reverse -n $retain | lines | first
-    let s = _git_status
-    git checkout -f --orphan temp $h
-    git add .
-    git commit -m $message
-    git rebase --onto temp $h $s.branch
-}
-
-export def git-squash-last [
-    num:int
-] {
-    let l = git log  --pretty=»»¦««%s»¦«%b -n $num
-    | split row '»»¦««' | slice 1..
-    | split column '»¦«' message body
-    | each { $"($in.message)\n\n($in.body)" }
-    | str join "\n===\n"
-    git reset --soft $"HEAD~($num)"
-    git commit --edit -m $l
 }
