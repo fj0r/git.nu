@@ -321,9 +321,15 @@ export def git-commit [
             $args ++= [-m $message -e]
         }
     }
-    if $all { $args ++= [--all] }
-    if $amend { $args ++= [--amend] }
-    if $keep { $args ++= [--no-edit] }
+    if $all {
+        $args ++= [--all]
+    }
+    if $amend {
+        $args ++= [--amend]
+    }
+    if $keep {
+        $args ++= [--no-edit]
+    }
     git commit -v ...$args
 }
 
@@ -339,9 +345,15 @@ export def git-diff [
     --staged (-s)     # staged
 ] {
     mut args = []
-    if $word_diff { $args ++= [--word-diff] }
-    if $cached { $args ++= [--cached] }
-    if $staged { $args ++= [--staged] }
+    if $word_diff {
+        $args ++= [--word-diff]
+    }
+    if $cached {
+        $args ++= [--cached]
+    }
+    if $staged {
+        $args ++= [--staged]
+    }
     let s = _git_status
     if ($commit | is-empty) {
         if ($s | sum_prefix 'wt_') > 0 {
@@ -369,8 +381,14 @@ export def git-merge [
     --remote (-r)='origin':  string@cmpl-git-remotes
 ] {
     mut args = []
-    if $squash { $args ++= [--squash] }
-    if $fast_farward { $args ++= [--ff] } else { $args ++= [--no-ff] }
+    if $squash {
+        $args ++= [--squash]
+    }
+    if $fast_farward {
+        $args ++= [--ff]
+    } else {
+        $args ++= [--no-ff]
+    }
     if ($branch | is-empty) {
         git merge ...$args $"($remote)/(git_main_branch)"
     } else {
@@ -382,9 +400,9 @@ export def git-merge [
 }
 
 # git rebase
-# TODO: --onto: (commit_id)
 export def git-rebase [
     branch?:            string@cmpl-git-branches
+    --from (-f)
     --interactive (-i)
     --onto (-o):        string
     --abort (-a)
@@ -392,24 +410,26 @@ export def git-rebase [
     --skip (-s)
     --quit (-q)
 ] {
+    mut $args = []
     if $abort {
-        git rebase --abort
+        $args ++= [--abort]
     } else if $continue {
-        git rebase --continue
+        $args ++= [--continue]
     } else if $skip {
-        git rebase --skip
+        $args ++= [--skip]
     } else if $quit {
-        git rebase --quit
+        $args ++= [--quit]
     } else if ($onto | is-not-empty) {
-        git rebase --onto $branch
+        $args ++= [--onto $branch]
     } else {
-        let i = if $interactive {[--interactive]} else {[]}
+        if $interactive { $args ++= [--interactive] }
         if ($branch | is-empty) {
-            git rebase ...$i (git_main_branch)
+            $args ++= [(git_main_branch)]
         } else {
-            git rebase ...$i $branch
+            $args ++= [$branch]
         }
     }
+    git rebase ...$args
 }
 
 # git cherry-pick
