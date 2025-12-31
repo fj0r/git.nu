@@ -426,7 +426,8 @@ export def git-rebase [
             $args ++= [--interactive]
         }
         if ($from | is-not-empty) {
-            $args ++= [curr $from]
+            let curr = git branch --show-current
+            $args ++= [$curr $from]
         } else if ($branch | is-not-empty) {
             $args ++= [$branch]
         } else {
