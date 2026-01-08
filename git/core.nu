@@ -167,6 +167,7 @@ export def git-pull-push [
     --remote (-r)='origin':  string@cmpl-git-remotes  # remote
     --rebase
     --force (-f)             # git push -f
+    --quick (-q)
     --empty: string
     --submodule (-s)         # git submodule
     --init (-i)              # git init
@@ -182,6 +183,17 @@ export def git-pull-push [
         git add --all
         git commit --allow-empty -m $"🫙($empty)"
         git push
+    } else if $force {
+        let prev = (_git_status).branch
+        let branch = if ($branch | is-empty) { $prev } else { $branch }
+        if $prev != $branch { git checkout $branch }
+        tips $"force pushing ($branch) to ($remote)..."
+        if $quick {
+            git add .
+            git-commit -ak
+        }
+        git push -f --set-upstream $remote $branch
+        if $back_to_prev { git checkout $prev }
     } else {
         # git fetch --prune
         let m = if $rebase { [--rebase] } else { [] }
@@ -193,19 +205,12 @@ export def git-pull-push [
         let rbs = remote_branches
         if $"($remote)/($branch)" in $rbs {
             if $branch in $lbs {
-                let bmsg = $'both local and remote have ($branch_repr) branch'
-                if $force {
-                    tips $'($bmsg), with `--force`, push'
-                    git branch -u $'($remote)/($branch)' $branch
-                    git push --force
-                } else {
-                    tips $'($bmsg), pull'
-                    if $prev != $branch {
-                        tips $'switch to ($branch_repr)'
-                        git checkout $branch
-                    }
-                    git pull ...$m ...$a
+                tips $'both local and remote have ($branch_repr) branch, pull'
+                if $prev != $branch {
+                    tips $'switch to ($branch_repr)'
+                    git checkout $branch
                 }
+                git pull ...$m ...$a
             } else {
                 tips $"local doesn't have ($branch_repr) branch, fetch"
                 git fetch $remote $"($branch):($branch)"
@@ -215,7 +220,6 @@ export def git-pull-push [
             }
         } else {
             let bmsg = $"remote doesn't have ($branch_repr) branch"
-            let force = if $force {[--force]} else {[]}
             if $branch in $lbs {
                 tips $'($bmsg), set upstream and push'
                 git checkout $branch
@@ -223,7 +227,7 @@ export def git-pull-push [
                 tips $'($bmsg), create and push'
                 git checkout -b $branch
             }
-            git push ...$force --set-upstream $remote $branch
+            git push --set-upstream $remote $branch
         }
 
         if $back_to_prev {
