@@ -3,7 +3,6 @@ export use utils.nu *
 export use core.nu *
 export use histogram.nu *
 export use git-flow.nu *
-export use shortcut.nu *
 
 export-env {
     $env.GIT_COMMIT_TYPE = {

@@ -5,36 +5,36 @@ export alias gs = git status #[entry]
 # export alias gl = git-log #[entry]
 export def gl [commit?: string, --markdown(-m), --verbose(-v), --reverse(-r)] {
     let n = $in
-    use git *
+    use git *; use git/shortcut.nu *
     $n | git-log $commit --markdown=$markdown --verbose=$verbose --reverse=$reverse --num 32
 }
 # export alias gb = git-branch #[entry]
 export def gb [branch?: string, --delete(-d), --no-merged(-n)] {
     let n = $in
-    use git *
+    use git *; use git/shortcut.nu *
     $n | git-branch $branch --remote origin --delete=$delete --no-merged=$no_merged
 }
 # export alias gp = git-pull-push #[entry]
 export def gp [branch?: string, --rebase, --force(-f), --quick(-q), --empty: string, --submodule(-s), --init(-i), --autostash(-a), --back-to-prev(-b)] {
     let n = $in
-    use git *
+    use git *; use git/shortcut.nu *
     $n | git-pull-push $branch --remote origin --rebase=$rebase --force=$force --quick=$quick --empty $empty --submodule=$submodule --init=$init --autostash=$autostash --back-to-prev=$back_to_prev
 }
 # export alias ga = git-add #[entry]
 export def ga [...file: path, --all(-A), --patch(-p), --update(-u), --verbose(-v), --delete(-d), --cached(-c), --force(-f), --restore(-r), --staged(-s), --source(-o): string] {
     let n = $in
-    use git *
+    use git *; use git/shortcut.nu *
     $n | git-add  ...$file --all=$all --patch=$patch --update=$update --verbose=$verbose --delete=$delete --cached=$cached --force=$force --restore=$restore --staged=$staged --source $source
 }
 # export alias gc = git-commit #[entry]
 export def gc [...message: string, --type(-t): string, --all(-A), --amend(-a), --keep(-k)] {
     let n = $in
-    use git *
+    use git *; use git/shortcut.nu *
     $n | git-commit  ...$message --type $type --all=$all --amend=$amend --keep=$keep
 }
 # export alias gd = git-diff #[entry]
 export def gd [commit?: string, commit2?: string, --cached(-c), --unstashed(-u), --word-diff(-w), --staged(-s)] {
     let n = $in
-    use git *
+    use git *; use git/shortcut.nu *
     $n | git-diff $commit $commit2 --cached=$cached --unstashed=$unstashed --word-diff=$word_diff --staged=$staged
 }
