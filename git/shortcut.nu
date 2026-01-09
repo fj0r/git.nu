@@ -1,3 +1,4 @@
+export alias gs = git status
 export alias gl = git-log
 export alias gst = git-stash
 export alias gb = git-branch
