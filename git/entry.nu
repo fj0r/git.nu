@@ -4,25 +4,25 @@
 export alias gs = git status #[entry]
 # export alias gl = git-log #[entry]
 export def --env gl [commit?: string, --markdown(-m), --verbose(-v), --reverse(-r)] {
-    $env.config.hooks.pre_execution = [ { code: 'print $"(ansi grey)load (ansi xterm_grey58)git(ansi grey)...(ansi reset)";use git *; $env.config.hooks.pre_execution = ($env.config.hooks.pre_execution | slice ..-2)' } ]; print $'(ansi grey)the next command will load the `(ansi xterm_grey58)git(ansi grey)` module.(ansi grey)'
+    $env.config.hooks.pre_execution ++= [ { self-destruct: git code: 'print $"(ansi grey)load (ansi xterm_grey58)git(ansi grey)...(ansi reset)";use git *; $env.config.hooks.pre_execution = $env.config.hooks.pre_execution | where {|x| ($x | describe -d).type != record or $x.self-destruct? != git }' } ]; print $'(ansi grey)the next command will load the `(ansi xterm_grey58)git(ansi grey)` module.(ansi grey)'
 }
 # export alias gb = git-branch #[entry]
 export def --env gb [branch?: string, --delete(-d), --no-merged(-n)] {
-    $env.config.hooks.pre_execution = [ { code: 'print $"(ansi grey)load (ansi xterm_grey58)git(ansi grey)...(ansi reset)";use git *; $env.config.hooks.pre_execution = ($env.config.hooks.pre_execution | slice ..-2)' } ]; print $'(ansi grey)the next command will load the `(ansi xterm_grey58)git(ansi grey)` module.(ansi grey)'
+    $env.config.hooks.pre_execution ++= [ { self-destruct: git code: 'print $"(ansi grey)load (ansi xterm_grey58)git(ansi grey)...(ansi reset)";use git *; $env.config.hooks.pre_execution = $env.config.hooks.pre_execution | where {|x| ($x | describe -d).type != record or $x.self-destruct? != git }' } ]; print $'(ansi grey)the next command will load the `(ansi xterm_grey58)git(ansi grey)` module.(ansi grey)'
 }
 # export alias gp = git-pull-push #[entry]
 export def --env gp [branch?: string, --rebase, --force(-f), --quick(-q), --empty: string, --submodule(-s), --init(-i), --autostash(-a), --back-to-prev(-b)] {
-    $env.config.hooks.pre_execution = [ { code: 'print $"(ansi grey)load (ansi xterm_grey58)git(ansi grey)...(ansi reset)";use git *; $env.config.hooks.pre_execution = ($env.config.hooks.pre_execution | slice ..-2)' } ]; print $'(ansi grey)the next command will load the `(ansi xterm_grey58)git(ansi grey)` module.(ansi grey)'
+    $env.config.hooks.pre_execution ++= [ { self-destruct: git code: 'print $"(ansi grey)load (ansi xterm_grey58)git(ansi grey)...(ansi reset)";use git *; $env.config.hooks.pre_execution = $env.config.hooks.pre_execution | where {|x| ($x | describe -d).type != record or $x.self-destruct? != git }' } ]; print $'(ansi grey)the next command will load the `(ansi xterm_grey58)git(ansi grey)` module.(ansi grey)'
 }
 # export alias ga = git-add #[entry]
 export def --env ga [...file: path, --all(-A), --patch(-p), --update(-u), --verbose(-v), --delete(-d), --cached(-c), --force(-f), --restore(-r), --staged(-s), --source(-o): string] {
-    $env.config.hooks.pre_execution = [ { code: 'print $"(ansi grey)load (ansi xterm_grey58)git(ansi grey)...(ansi reset)";use git *; $env.config.hooks.pre_execution = ($env.config.hooks.pre_execution | slice ..-2)' } ]; print $'(ansi grey)the next command will load the `(ansi xterm_grey58)git(ansi grey)` module.(ansi grey)'
+    $env.config.hooks.pre_execution ++= [ { self-destruct: git code: 'print $"(ansi grey)load (ansi xterm_grey58)git(ansi grey)...(ansi reset)";use git *; $env.config.hooks.pre_execution = $env.config.hooks.pre_execution | where {|x| ($x | describe -d).type != record or $x.self-destruct? != git }' } ]; print $'(ansi grey)the next command will load the `(ansi xterm_grey58)git(ansi grey)` module.(ansi grey)'
 }
 # export alias gc = git-commit #[entry]
 export def --env gc [...message: string, --type(-t): string, --all(-A), --amend(-a), --keep(-k)] {
-    $env.config.hooks.pre_execution = [ { code: 'print $"(ansi grey)load (ansi xterm_grey58)git(ansi grey)...(ansi reset)";use git *; $env.config.hooks.pre_execution = ($env.config.hooks.pre_execution | slice ..-2)' } ]; print $'(ansi grey)the next command will load the `(ansi xterm_grey58)git(ansi grey)` module.(ansi grey)'
+    $env.config.hooks.pre_execution ++= [ { self-destruct: git code: 'print $"(ansi grey)load (ansi xterm_grey58)git(ansi grey)...(ansi reset)";use git *; $env.config.hooks.pre_execution = $env.config.hooks.pre_execution | where {|x| ($x | describe -d).type != record or $x.self-destruct? != git }' } ]; print $'(ansi grey)the next command will load the `(ansi xterm_grey58)git(ansi grey)` module.(ansi grey)'
 }
 # export alias gd = git-diff #[entry]
 export def --env gd [commit?: string, commit2?: string, --cached(-c), --unstashed(-u), --word-diff(-w), --staged(-s)] {
-    $env.config.hooks.pre_execution = [ { code: 'print $"(ansi grey)load (ansi xterm_grey58)git(ansi grey)...(ansi reset)";use git *; $env.config.hooks.pre_execution = ($env.config.hooks.pre_execution | slice ..-2)' } ]; print $'(ansi grey)the next command will load the `(ansi xterm_grey58)git(ansi grey)` module.(ansi grey)'
+    $env.config.hooks.pre_execution ++= [ { self-destruct: git code: 'print $"(ansi grey)load (ansi xterm_grey58)git(ansi grey)...(ansi reset)";use git *; $env.config.hooks.pre_execution = $env.config.hooks.pre_execution | where {|x| ($x | describe -d).type != record or $x.self-destruct? != git }' } ]; print $'(ansi grey)the next command will load the `(ansi xterm_grey58)git(ansi grey)` module.(ansi grey)'
 }
