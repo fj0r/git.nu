@@ -119,6 +119,10 @@ export def git-branch [
     }
 }
 
+export def git-unmerged [] {
+    git-branch | where ($it.remote | is-empty) and ($it.merged | is-empty) | get branch
+}
+
 # git clone, init
 export def --env git-new [
     repo?:            string@cmpl-git-branches
