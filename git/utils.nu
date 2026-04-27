@@ -129,3 +129,13 @@ export def git-squash-last [
     git reset --soft $"HEAD~($num)"
     git commit --edit -m $l
 }
+
+export def git-purge-history [] {
+    let wd = mktemp -d
+    let paths = $wd | path join paths.txt
+    git ls-files | save $paths
+    cp .git/config $wd
+    git filter-repo --paths-from-file $paths --prune-empty always --force
+    mv ($wd | path join config) .git/config
+    rm -rf $wd
+}
