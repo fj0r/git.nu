@@ -2,7 +2,6 @@ export def cmpl-git-log [] {
     git log -n 32 --pretty=%h»¦«%s
     | lines
     | split column "»¦«" value description
-    #| each { $"($in.value) # ($in.description)"}
     | { completions: $in, options: { sort: false, match_description: true } }
 }
 
