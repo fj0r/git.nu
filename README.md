@@ -84,4 +84,4 @@ Git bisect
 ### git-sync
 
 ---
-[Others](https://github.com/orbit-shift/nushell/blob/main/README.md)
+[Others](https://github.com/orbsh/nushell/blob/main/README.md)
