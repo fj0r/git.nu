@@ -341,7 +341,11 @@ export def git-commit [
     git commit -v ...$args
 }
 
-
+def --wrapped git-stat-diff [...args] {
+    git diff --stat ...$args
+    print (char newline)
+    git diff ...$args
+}
 
 # git diff
 export def git-diff [
@@ -365,15 +369,15 @@ export def git-diff [
     let s = _git_status
     if ($commit | is-empty) {
         if ($s | sum_prefix 'wt_') > 0 {
-            git diff ...$args
+            git-stat-diff ...$args
         } else if ($s | sum_prefix 'idx_') > 0 {
-            git diff ...$args --staged
+            git-stat-diff ...$args --staged
         }
     } else {
         if ($commit2 | is-empty) {
-            git diff ...$args $s.branch $commit
+            git-stat-diff ...$args $s.branch $commit
         } else {
-            git diff ...$args $commit $commit2
+            git-stat-diff ...$args $commit $commit2
         }
     }
 }
