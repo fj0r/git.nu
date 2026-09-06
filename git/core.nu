@@ -6,6 +6,42 @@ def sum_prefix [p] {
     $in | items {|k,v| if ($k | str starts-with $p) { $v } else { 0 } } | math sum
 }
 
+# git log
+export def git-log [
+    commit?: string@cmpl-git-log
+    --markdown(-m)
+    --verbose(-v)
+    --reverse(-r)
+    --num(-n):int=32
+] {
+    if ($commit|is-empty) {
+        let r = _git_log --reverse=(not $reverse) --verbose=$verbose -n $num
+        if $markdown {
+            mut m = []
+            for i in $r {
+                if ($i.refs | is-not-empty) {
+                    let t = $i.refs
+                    | where {|x| $x | str starts-with 'tag: ' }
+                    | each {|x| $x | str substring 5.. }
+                    for j in $t {
+                        $m ++= [$"## ($j)"]
+                    }
+                }
+                $m ++= [$"###### ($i.message)\n"]
+                $m ++= [$"> ($i.date | format date '%y-%m-%d/%w/%H:%M:%S') ($i.sha)\n"]
+                if ($i.body | str trim | is-not-empty) {
+                    $m ++= [$"($i.body)"]
+                }
+            }
+            $m | str join "\n"
+        } else {
+            $r | update body {|x| $x.body | str trim}
+        }
+    } else {
+        git log --stat -p -n 1 $commit
+    }
+}
+
 # git stash
 export def git-stash [
     --apply (-a)
@@ -48,7 +84,7 @@ export def git-branch [
     --delete (-d)
     --no-merged (-n)
 ] {
-    let bs = git branch | lines | each {|x| $x | str substring 2..}
+    let bs = git-branches
     if $delete {
         let remote_branches = remote_branches
         if ($branch | is-empty) {
@@ -125,7 +161,7 @@ export def git-unmerged [] {
 
 # git clone, init
 export def --env git-new [
-    repo?:            string@cmpl-git-branches
+    repo?:            string
     local?:           path
     --submodule (-s)  # git submodule
     --init (-i)       # git init
@@ -161,7 +197,7 @@ export def git-ignore [--empty-dir] {
             '!.gitignore'
         ] | str join (char newline) | save .gitignore
     } else {
-        ^$env.EDITOR ([(git rev-parse --show-toplevel) .gitignore] | path join)
+        ^$env.EDITOR ([(git-top-level) .gitignore] | path join)
     }
 }
 
@@ -188,7 +224,7 @@ export def git-pull-push [
         git commit --allow-empty -m $"🫙($empty)"
         git push
     } else if $force {
-        let prev = (_git_status).branch
+        let prev = git-current-branch
         let branch = if ($branch | is-empty) { $prev } else { $branch }
         if $prev != $branch { git checkout $branch }
         tips $"force pushing ($branch) to ($remote)..."
@@ -202,10 +238,10 @@ export def git-pull-push [
         # git fetch --prune
         let m = if $rebase { [--rebase] } else { [] }
         let a = if $autostash {[--autostash]} else {[]}
-        let prev = (_git_status).branch
+        let prev = git-current-branch
         let branch = if ($branch | is-empty) { $prev } else { $branch }
         let branch_repr = $'(ansi yellow)($branch)(ansi light_gray)'
-        let lbs = git branch | lines | each { $in | str substring 2..}
+        let lbs = git-branches
         let rbs = remote_branches
         if $"($remote)/($branch)" in $rbs {
             if $branch in $lbs {
@@ -292,7 +328,7 @@ export def git-delete [
             $'git rm --cached --ignore-unmatch ($f)'
             --prune-empty --tag-name-filter cat
             -- --all)
-        rm -rf ([(git rev-parse --show-toplevel) .git/refs/original/] | path join)
+        rm -rf ([(git-top-level) .git/refs/original/] | path join)
         ggc
     } else {
         if $cached { $args ++= [--cached] }
@@ -384,7 +420,7 @@ export def git-diff [
 
 # git merge
 export def git-merge [
-    branch?:            string@cmpl-git-branches
+    branch?:            string@cmpl-git-other-branches
     --abort (-a)
     --continue (-c)
     --quit (-q)
@@ -413,8 +449,8 @@ export def git-merge [
 
 # git rebase
 export def git-rebase [
-    branch?:            string@cmpl-git-branches
-    --from (-f):        string@cmpl-git-branches
+    branch?:            string@cmpl-git-other-branches
+    --from (-f):        string@cmpl-git-other-branches
     --interactive (-i)
     --onto (-o):        string
     --abort (-a)
@@ -478,7 +514,7 @@ export def git-cherry-pick [
 
 # copy file from other branch
 export def git-copy-file [
-    branch:     string@cmpl-git-branches
+    branch:     string@cmpl-git-other-branches
     ...file:    string@cmpl-git-branch-files
 ] {
     ^git checkout $branch $file

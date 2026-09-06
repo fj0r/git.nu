@@ -1,7 +1,19 @@
-use complete.nu *
 # git status
 export def gs [] {
     git status
+}
+
+export def git-top-level [] {
+    git rev-parse --show-toplevel
+}
+
+export def git-current-branch [] {
+    git branch --show-current
+}
+
+# List local branches reliably (pure names, no decorators)
+export def git-branches [] {
+    git branch --format '%(refname:short)' | lines
 }
 
 export def _git_status [] {
@@ -171,43 +183,6 @@ export def _git_log [
         | update refs $refs
     }
 }
-
-# git log
-export def git-log [
-    commit?: string@cmpl-git-log
-    --markdown(-m)
-    --verbose(-v)
-    --reverse(-r)
-    --num(-n):int=32
-] {
-    if ($commit|is-empty) {
-        let r = _git_log --reverse=(not $reverse) --verbose=$verbose -n $num
-        if $markdown {
-            mut m = []
-            for i in $r {
-                if ($i.refs | is-not-empty) {
-                    let t = $i.refs
-                    | where {|x| $x | str starts-with 'tag: ' }
-                    | each {|x| $x | str substring 5.. }
-                    for j in $t {
-                        $m ++= [$"## ($j)"]
-                    }
-                }
-                $m ++= [$"###### ($i.message)\n"]
-                $m ++= [$"> ($i.date | format date '%y-%m-%d/%w/%H:%M:%S') ($i.sha)\n"]
-                if ($i.body | str trim | is-not-empty) {
-                    $m ++= [$"($i.body)"]
-                }
-            }
-            $m | str join "\n"
-        } else {
-            $r | update body {|x| $x.body | str trim}
-        }
-    } else {
-        git log --stat -p -n 1 $commit
-    }
-}
-
 
 export def remote_branches [] {
     git branch -r

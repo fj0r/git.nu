@@ -17,10 +17,8 @@ export-env {
 }
 
 def git-kind-select [kind] {
-    git branch
+    git-branches
     | lines
-    | where { $in | str starts-with '*' | not $in }
-    | each {|x| $"($x|str trim)"}
     | where {|x|
         let branches = $env.GIT_FLOW.branches
         let sep = $env.GIT_FLOW.separator
@@ -35,7 +33,7 @@ def cmpl-git-features [] {
 export def git-kind-branches [kind] {
     let branches = $env.GIT_FLOW.branches
     let sep = $env.GIT_FLOW.separator
-    let curr = (_git_status).branch
+    let curr = git-current-branch
     mut obj = $curr
     if not ($obj | str starts-with $"($branches | get $kind)($sep)") {
         let r = git-kind-select $kind

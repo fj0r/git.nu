@@ -1,3 +1,5 @@
+use stat.nu *
+
 export def cmpl-git-log [] {
     git log -n 32 --pretty=%h»¦«%s
     | lines
@@ -23,10 +25,12 @@ export def cmpl-git-branch-files [context: string, offset:int] {
 }
 
 export def cmpl-git-branches [] {
-    git branch
-    | lines
-    | where {|x| not ($x | str starts-with '*')}
-    | each {|x| $"($x|str trim)"}
+    git-branches
+}
+
+export def cmpl-git-other-branches [] {
+    let cur = git-current-branch
+    git-branches | where $in != $cur
 }
 
 export def cmpl-git-remotes [] {
