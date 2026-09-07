@@ -21,9 +21,16 @@ def ensure-ignore [] {
     mkdir ($gtl)/.worktrees
 }
 
-export def --env git-worktree-add [
+export def --env git-worktree [
     branch: string@cmpl-git-other-branches
 ] {
+    let wt = $'.worktrees/($branch)'
+    let gtl = git-top-level
+    # already created before, just cd into it
+    if ($gtl | path join $wt | path exists) {
+        cd $wt
+        return
+    }
     ensure-ignore
     let prev = git-current-branch
     if $branch == $prev { return }
@@ -31,7 +38,6 @@ export def --env git-worktree-add [
         git checkout -b $branch
         git checkout $prev
     }
-    let wt = $'.worktrees/($branch)'
     git worktree add $wt $branch
     cd $wt
 }

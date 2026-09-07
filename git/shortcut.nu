@@ -21,7 +21,7 @@ export alias ghm = git-histogram-merger
 export alias gha = git-histogram-activities
 export alias gu = git-unmerged
 
-export alias gwa = git-worktree-add
+export alias gw = git-worktree
 export alias gwr = git-worktree-remove
 
 export alias gcl = git config --list
